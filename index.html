@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>License Plate Detection & Recognition</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://docs.opencv.org/4.8.0/opencv.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .panel h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel h2::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, #00d9ff, #00ff88);
+            border-radius: 2px;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .upload-area p {
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+
+        .upload-area input {
+            display: none;
+        }
+
+        .camera-section {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            color: #1a1a2e;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 217, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        #video-container {
+            display: none;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        #video {
+            width: 100%;
+            border-radius: 10px;
+            background: #000;
+        }
+
+        .image-preview {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .results-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .result-label {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00ff88;
+        }
+
+        .confidence-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .processing-indicator {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00d9ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .processing-text {
+            color: #aaa;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .history-panel {
+            margin-top: 30px;
+        }
+
+        .history-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .history-plate {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #00ff88;
+        }
+
+        .history-time {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .status-processing {
+            background: rgba(0, 217, 255, 0.2);
+            color: #00d9ff;
+        }
+
+        .status-error {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+
+        .canvas-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #processed-canvas {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        .settings-panel {
+            margin-top: 30px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .setting-label {
+            color: #aaa;
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            width: 150px;
+            accent-color: #00d9ff;
+        }
+
+        select {
+            padding: 8px 15px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        select option {
+            background: #1a1a2e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 License Plate Detector</h1>
+            <p class="subtitle">Detect and recognize license plates from images or camera feed</p>
+        </header>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="panel">
+                    <h2>Upload Image</h2>
+                    <div class="upload-area" id="upload-area">
+                        <i>📁</i>
+                        <p>Drag & drop an image here or click to select</p>
+                        <input type="file" id="file-input" accept="image/*">
+                    </div>
+                    <div class="camera-section">
+                        <button class="btn btn-secondary" id="btn-camera">📷 Open Camera</button>
+                        <button class="btn btn-secondary" id="btn-capture" style="display: none;">📸 Capture</button>
+                        <button class="btn btn-secondary" id="btn-close-camera" style="display: none;">✕ Close Camera</button>
+                    </div>
+                    <div id="video-container">
+                        <video id="video" autoplay playsinline></video>
+                    </div>
+                    <div class="image-preview" id="image-preview">
+                        <img id="preview-image" src="" alt="Preview">
+                        <button class="btn btn-primary" id="btn-process">🔍 Detect Plate</button>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="processed-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="results-panel">
+                    <h2>Results</h2>
+                    <div class="processing-indicator" id="processing">
+                        <div class="spinner"></div>
+                        <p class="processing-text">Processing image...</p>
+                    </div>
+                    <div id="results-content">
+                        <div class="result-item">
+                            <div class="result-label">Detected Plate</div>
+                            <div class="result-value" id="plate-number">--</div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="confidence-fill" style="width: 0%"></div>
+                            </div>
+                            <div class="result-label" id="confidence-text" style="margin-top: 10px;">Confidence: 0%</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Processing Time</div>
+                            <div class="result-value" id="processing-time" style="font-size: 1.2rem;">-- ms</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Status</div>
+                            <span class="status-badge status-processing" id="status-badge">Waiting for input</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel history-panel">
+                    <h2>Recent Detections</h2>
+                    <ul class="history-list" id="history-list">
+                        <li style="text-align: center; color: #666; padding: 20px;">No detections yet</li>
+                    </ul>
+                    <button class="btn btn-secondary" id="btn-clear-history" style="width: 100%; margin-top: 15px;">🗑️ Clear History</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel settings-panel">
+            <h2>Settings</h2>
+            <div class="setting-row">
+                <span class="setting-label">OCR Language</span>
+                <div class="setting-control">
+                    <select id="language-select">
+                        <option value="eng">English</option>
+                        <option value="deu">German</option>
+                        <option value="fra">French</option>
+                        <option value="spa">Spanish</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">Contrast Enhancement</span>
+                <div class="setting-control">
+                    <input type="range" id="contrast-slider" min="0" max="100" value="30">
+                </div>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">Threshold Value</span>
+                <div class="setting-control">
+                    <input type="range" id="threshold-slider" min="0" max="255" value="128">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let stream = null;
+        let currentImage = null;
+        let detectionHistory = [];
+        let opencvReady = false;
+        let tesseractReady = false;
+
+        // DOM Elements
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const btnCamera = document.getElementById('btn-camera');
+        const btnCapture = document.getElementById('btn-capture');
+        const btnCloseCamera = document.getElementById('btn-close-camera');
+        const videoContainer = document.getElementById('video-container');
+        const video = document.getElementById('video');
+        const imagePreview = document.getElementById('image-preview');
+        const previewImage = document.getElementById('preview-image');
+        const btnProcess = document.getElementById('btn-process');
+        const processing = document.getElementById('processing');
+        const plateNumber = document.getElementById('plate-number');
+        const confidenceFill = document.getElementById('confidence-fill');
+        const confidenceText = document.getElementById('confidence-text');
+        const processingTime = document.getElementById('processing-time');
+        const statusBadge = document.getElementById('status-badge');
+        const historyList = document.getElementById('history-list');
+        const btnClearHistory = document.getElementById('btn-clear-history');
+        const processedCanvas = document.getElementById('processed-canvas');
+        const canvasContainer = document.querySelector('.canvas-container');
+        const languageSelect = document.getElementById('language-select');
+        const contrastSlider = document.getElementById('contrast-slider');
+        const thresholdSlider = document.getElementById('threshold-slider');
+
+        // Initialize OpenCV
+        function onOpenCvReady() {
+            opencvReady = true;
+            console.log('OpenCV.js is ready');
+        }
+
+        // Check if OpenCV is loaded
+        if (typeof cv !== 'undefined' && cv.getBuildInformation) {
+            onOpenCvReady();
+        } else {
+            cv['onRuntimeInitialized'] = onOpenCvReady;
+        }
+
+        // Initialize Tesseract
+        async function initTesseract() {
+            try {
+                await Tesseract.recognize('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'eng');
+                tesseractReady = true;
+                console.log('Tesseract.js is ready');
+            } catch (error) {
+                console.error('Failed to initialize Tesseract:', error);
+            }
+        }
+
+        initTesseract();
+
+        // File upload handlers
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImageFile(file);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleImageFile(file);
+            }
+        });
+
+        function handleImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentImage = e.target.result;
+                previewImage.src = currentImage;
+                imagePreview.style.display = 'block';
+                videoContainer.style.display = 'none';
+                stopCamera();
+                updateStatus('Ready to process', 'processing');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Camera handlers
+        btnCamera.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                video.srcObject = stream;
+                videoContainer.style.display = 'block';
+                imagePreview.style.display = 'none';
+                btnCamera.style.display = 'none';
+                btnCapture.style.display = 'inline-block';
+                btnCloseCamera.style.display = 'inline-block';
+                updateStatus('Camera active', 'processing');
+            } catch (error) {
+                console.error('Camera error:', error);
+                alert('Unable to access camera. Please ensure camera permissions are granted.');
+            }
+        });
+
+        btnCapture.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            currentImage = canvas.toDataURL('image/jpeg', 0.9);
+            previewImage.src = currentImage;
+            imagePreview.style.display = 'block';
+            stopCamera();
+            updateStatus('Ready to process', 'processing');
+        });
+
+        btnCloseCamera.addEventListener('click', stopCamera);
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            videoContainer.style.display = 'none';
+            btnCamera.style.display = 'inline-block';
+            btnCapture.style.display = 'none';
+            btnCloseCamera.style.display = 'none';
+        }
+
+        // Process image
+        btnProcess.addEventListener('click', processImage);
+
+        async function processImage() {
+            if (!currentImage) {
+                alert('Please select or capture an image first.');
+                return;
+            }
+
+            updateStatus('Processing...', 'processing');
+            processing.style.display = 'block';
+            
+            const startTime = performance.now();
+
+            try {
+                // Preprocess image
+                const processedImage = await preprocessImage(currentImage);
+                
+                // Display processed image
+                const img = new Image();
+                img.onload = () => {
+                    processedCanvas.width = img.width;
+                    processedCanvas.height = img.height;
+                    const ctx = processedCanvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    canvasContainer.style.display = 'block';
+                };
+                img.src = processedImage;
+
+                // Perform OCR
+                const result = await performOCR(processedImage);
+                
+                const endTime = performance.now();
+                const timeTaken = Math.round(endTime - startTime);
+
+                // Update results
+                displayResults(result, timeTaken);
+                
+            } catch (error) {
+                console.error('Processing error:', error);
+                updateStatus('Error processing image', 'error');
+                plateNumber.textContent = 'Error';
+            }
+
+            processing.style.display = 'none';
+        }
+
+        async function preprocessImage(imageData) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => {
+                    try {
+                        // Create canvas for processing
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+
+                        // Get image data
+                        let src = cv.imread(canvas);
+                        let dst = new cv.Mat();
+
+                        // Convert to grayscale
+                        cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+
+                        // Apply Gaussian blur to reduce noise
+                        let ksize = new cv.Size(5, 5);
+                        cv.GaussianBlur(src, dst, ksize, 0, 0, cv.BORDER_DEFAULT);
+
+                        // Apply contrast enhancement
+                        const contrast = contrastSlider.value / 100;
+                        dst.convertTo(dst, -1, 1 + contrast, 0);
+
+                        // Apply thresholding
+                        const threshold = parseInt(thresholdSlider.value);
+                        cv.threshold(dst, dst, threshold, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
+
+                        // Morphological operations
+                        let kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
+                        cv.morphologyEx(dst, dst, cv.MORPH_OPEN, kernel);
+                        cv.morphologyEx(dst, dst, cv.MORPH_CLOSE, kernel);
+
+                        // Find contours for potential plate regions
+                        let contours = new cv.MatVector();
+                        let hierarchy = new cv.Mat();
+                        cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+                        // Find the largest rectangular contour (likely the plate)
+                        let maxArea = 0;
+                        let maxContour = -1;
+                        for (let i = 0; i < contours.size(); ++i) {
+                            let contour = contours.get(i);
+                            let area = cv.contourArea(contour);
+                            if (area > maxArea) {
+                                maxArea = area;
+                                maxContour = i;
+                            }
+                        }
+
+                        // Draw contours on the processed image
+                        cv.imshow(canvas, dst);
+
+                        // Cleanup
+                        src.delete();
+                        dst.delete();
+                        contours.delete();
+                        hierarchy.delete();
+
+                        resolve(canvas.toDataURL('image/png'));
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                img.onerror = reject;
+                img.src = imageData;
+            });
+        }
+
+        async function performOCR(imageData) {
+            const language = languageSelect.value;
+            
+            const result = await Tesseract.recognize(imageData, language, {
+                logger: (m) => console.log(m)
+            });
+
+            // Extract and clean the text
+            let text = result.data.text;
+            
+            // Filter for license plate patterns
+            // Typical patterns: ABC123, AB-123-CD, 123-ABC-456, etc.
+            text = text.toUpperCase()
+                       .replace(/[^A-Z0-9]/g, '')
+                       .replace(/\s+/g, '');
+
+            // Try to extract a license plate pattern
+            const platePattern = text.match(/[A-Z]{2,4}\d{2,4}[A-Z]{0,3}|\d{2,4}[A-Z]{2,3}\d{2,4}/);
+            
+            const detectedPlate = platePattern ? platePattern[0] : text.substring(0, 10);
+            const confidence = result.data.confidence;
+
+            return {
+                text: detectedPlate || 'No plate detected',
+                confidence: confidence || 0
+            };
+        }
+
+        function displayResults(result, time) {
+            plateNumber.textContent = result.text;
+            confidenceFill.style.width = result.confidence + '%';
+            confidenceText.textContent = `Confidence: ${result.confidence.toFixed(1)}%`;
+            processingTime.textContent = `${time} ms`;
+
+            if (result.confidence > 60) {
+                updateStatus('Plate detected', 'success');
+                addToHistory(result.text, result.confidence);
+            } else {
+                updateStatus('Low confidence', 'error');
+            }
+        }
+
+        function updateStatus(message, type) {
+            statusBadge.textContent = message;
+            statusBadge.className = 'status-badge';
+            switch (type) {
+                case 'success':
+                    statusBadge.classList.add('status-success');
+                    break;
+                case 'error':
+                    statusBadge.classList.add('status-error');
+                    break;
+                default:
+                    statusBadge.classList.add('status-processing');
+            }
+        }
+
+        function addToHistory(plate, confidence) {
+            const timestamp = new Date().toLocaleTimeString();
+            detectionHistory.unshift({ plate, confidence, timestamp });
+            
+            // Keep only last 10 entries
+            if (detectionHistory.length > 10) {
+                detectionHistory.pop();
+            }
+            
+            renderHistory();
+        }
+
+        function renderHistory() {
+            if (detectionHistory.length === 0) {
+                historyList.innerHTML = '<li style="text-align: center; color: #666; padding: 20px;">No detections yet</li>';
+                return;
+            }
+
+            historyList.innerHTML = detectionHistory.map(item => `
+                <li class="history-item">
+                    <span class="history-plate">${item.plate}</span>
+                    <span class="history-time">${item.timestamp}</span>
+                </li>
+            `).join('');
+        }
+
+        btnClearHistory.addEventListener('click', () => {
+            detectionHistory = [];
+            renderHistory();
+        });
+
+        // Initialize
+        updateStatus('Waiting for input', 'processing');
+    </script>
+</body>
+</html>
