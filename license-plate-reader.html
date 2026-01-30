@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>License Plate Reader - Webcam OCR</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .panel h2 {
+            margin-bottom: 15px;
+            color: #667eea;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        #webcam {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #captureBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        #captureBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #captureBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        #clearBtn {
+            background: #f44336;
+            color: white;
+        }
+
+        #clearBtn:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .captured-image {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .results-section {
+            margin-top: 15px;
+        }
+
+        .result-box {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .result-box p {
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+
+        .license-plates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .license-plate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border-left: 4px solid #388e3c;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        .status.processing {
+            background: #fff3e0;
+            color: #f57c00;
+            border-left: 4px solid #f57c00;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .confidence-high {
+            background: #4caf50;
+            color: white;
+        }
+
+        .confidence-medium {
+            background: #ff9800;
+            color: white;
+        }
+
+        .confidence-low {
+            background: #f44336;
+            color: white;
+        }
+
+        .instructions {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .instructions h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .instructions ul {
+            list-style-position: inside;
+            line-height: 2;
+        }
+
+        .instructions li {
+            padding-left: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 License Plate Reader</h1>
+
+        <div class="instructions">
+            <h3>📋 Instructions</h3>
+            <ul>
+                <li><strong>Step 1:</strong> Allow camera access when prompted</li>
+                <li><strong>Step 2:</strong> Position a license plate in front of your camera (or display an image)</li>
+                <li><strong>Step 3:</strong> Click "Capture & Analyze" to take a snapshot and extract text</li>
+                <li><strong>Step 4:</strong> View the detected license plate numbers and confidence scores</li>
+                <li><strong>Tip:</strong> For best results, ensure good lighting and clear visibility of the plate</li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+            <div class="panel">
+                <h2>📹 Live Camera Feed</h2>
+                <div id="statusMessage"></div>
+                <div class="video-container">
+                    <video id="webcam" autoplay playsinline></video>
+                </div>
+                <canvas id="canvas"></canvas>
+                <div class="controls">
+                    <button id="captureBtn" disabled>📸 Capture & Analyze</button>
+                    <button id="clearBtn">🗑️ Clear Results</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>🔍 Analysis Results</h2>
+                <img id="capturedImage" class="captured-image" alt="Captured snapshot">
+                <div id="resultsContainer">
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <p>No results yet. Capture an image to begin analysis.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const webcam = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const capturedImage = document.getElementById('capturedImage');
+        const ctx = canvas.getContext('2d');
+
+        let stream = null;
+
+        function showStatus(message, type = 'info') {
+            const statusHTML = `
+                <div class="status ${type}">
+                    ${type === 'processing' ? '<div class="spinner"></div>' : ''}
+                    <span>${message}</span>
+                </div>
+            `;
+            statusMessage.innerHTML = statusHTML;
+        }
+
+        async function initWebcam() {
+            try {
+                showStatus('📷 Requesting camera access...', 'info');
+                
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+
+                webcam.srcObject = stream;
+                
+                webcam.onloadedmetadata = () => {
+                    showStatus('✅ Camera ready! Position a license plate and click "Capture & Analyze"', 'success');
+                    captureBtn.disabled = false;
+                };
+            } catch (error) {
+                console.error('Error accessing webcam:', error);
+                showStatus('❌ Camera access denied or unavailable. Please check permissions.', 'error');
+                captureBtn.disabled = true;
+            }
+        }
+
+        function captureImage() {
+            canvas.width = webcam.videoWidth;
+            canvas.height = webcam.videoHeight;
+            ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+            
+            const imageDataUrl = canvas.toDataURL('image/png');
+            capturedImage.src = imageDataUrl;
+            capturedImage.style.display = 'block';
+            
+            return imageDataUrl;
+        }
+
+        function extractLicensePlates(text) {
+            const patterns = [
+                /\b[A-Z0-9]{2,3}[\s\-]?[A-Z0-9]{2,4}[\s\-]?[A-Z0-9]{0,3}\b/g,
+                /\b[A-Z]{1,3}\s*\d{1,4}\s*[A-Z]{0,3}\b/g,
+                /\b\d{1,3}\s*[A-Z]{2,4}\s*\d{1,4}\b/g,
+                /\b[A-Z0-9]{5,8}\b/g
+            ];
+
+            const matches = new Set();
+            const cleanText = text.toUpperCase().replace(/[^A-Z0-9\s\-]/g, '');
+
+            patterns.forEach(pattern => {
+                const found = cleanText.match(pattern);
+                if (found) {
+                    found.forEach(match => {
+                        const cleaned = match.replace(/[\s\-]/g, '');
+                        if (cleaned.length >= 4 && cleaned.length <= 8) {
+                            const hasLetters = /[A-Z]/.test(cleaned);
+                            const hasNumbers = /[0-9]/.test(cleaned);
+                            if (hasLetters && hasNumbers) {
+                                matches.add(cleaned);
+                            }
+                        }
+                    });
+                }
+            });
+
+            return Array.from(matches);
+        }
+
+        function getConfidenceBadge(confidence) {
+            const confidenceClass = confidence >= 70 ? 'confidence-high' : 
+                                   confidence >= 50 ? 'confidence-medium' : 
+                                   'confidence-low';
+            return `<span class="confidence-badge ${confidenceClass}">${confidence}%</span>`;
+        }
+
+        async function performOCR(imageDataUrl) {
+            try {
+                showStatus('🔄 Initializing Tesseract OCR...', 'processing');
+                
+                const worker = await Tesseract.createWorker({
+                    logger: (m) => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            showStatus(`🔄 Analyzing image... ${progress}%`, 'processing');
+                            updateProgressBar(progress);
+                        }
+                    }
+                });
+
+                await worker.loadLanguage('eng');
+                await worker.initialize('eng');
+                await worker.setParameters({
+                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ',
+                });
+
+                showStatus('🔍 Extracting text from image...', 'processing');
+                
+                const { data } = await worker.recognize(imageDataUrl);
+                
+                await worker.terminate();
+
+                const confidence = Math.round(data.confidence);
+                const extractedText = data.text.trim();
+                const licensePlates = extractLicensePlates(extractedText);
+
+                displayResults(extractedText, confidence, licensePlates);
+
+                if (licensePlates.length > 0) {
+                    showStatus(`✅ Analysis complete! Found ${licensePlates.length} potential license plate(s)`, 'success');
+                } else {
+                    showStatus('⚠️ No license plates detected. Try repositioning or improving lighting.', 'error');
+                }
+
+            } catch (error) {
+                console.error('OCR Error:', error);
+                showStatus('❌ Error during OCR processing. Please try again.', 'error');
+            }
+        }
+
+        function updateProgressBar(progress) {
+            const existingBar = document.querySelector('.progress-bar');
+            if (!existingBar) {
+                const progressHTML = `
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                `;
+                statusMessage.innerHTML += progressHTML;
+            } else {
+                const fill = existingBar.querySelector('.progress-fill');
+                fill.style.width = `${progress}%`;
+            }
+        }
+
+        function displayResults(text, confidence, licensePlates) {
+            let resultsHTML = '';
+
+            if (licensePlates.length > 0) {
+                resultsHTML += `
+                    <div class="result-box">
+                        <h3>🎯 Detected License Plates</h3>
+                        <div class="license-plates">
+                            ${licensePlates.map(plate => `<div class="license-plate">${plate}</div>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            resultsHTML += `
+                <div class="result-box">
+                    <h3>📊 Confidence Score ${getConfidenceBadge(confidence)}</h3>
+                    <p><strong>Overall confidence:</strong> ${confidence}%</p>
+                    <p>${confidence >= 70 ? '✅ High confidence - results are likely accurate' : 
+                         confidence >= 50 ? '⚠️ Medium confidence - results may need verification' : 
+                         '❌ Low confidence - consider retaking the image'}</p>
+                </div>
+            `;
+
+            resultsHTML += `
+                <div class="result-box">
+                    <h3>📝 Extracted Text</h3>
+                    <p>${text || '<em>No text detected</em>'}</p>
+                </div>
+            `;
+
+            resultsContainer.innerHTML = resultsHTML;
+        }
+
+        function clearResults() {
+            resultsContainer.innerHTML = `
+                <div class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <p>No results yet. Capture an image to begin analysis.</p>
+                </div>
+            `;
+            capturedImage.style.display = 'none';
+            showStatus('✅ Camera ready! Position a license plate and click "Capture & Analyze"', 'success');
+        }
+
+        captureBtn.addEventListener('click', async () => {
+            captureBtn.disabled = true;
+            const imageDataUrl = captureImage();
+            await performOCR(imageDataUrl);
+            captureBtn.disabled = false;
+        });
+
+        clearBtn.addEventListener('click', clearResults);
+
+        initWebcam();
+
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html>
