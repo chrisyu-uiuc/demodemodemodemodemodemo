@@ -368,6 +368,9 @@
         let startTime = null;
         let timerInterval = null;
         let remainingTime = 60;
+        let recognition = null;
+        let finalTranscript = '';
+        let interimTranscript = '';
 
         // DOM Elements
         const btnGenerateTopic = document.getElementById('btn-generate-topic');
@@ -440,6 +443,52 @@
         // Start recording
         btnStartRecording.addEventListener('click', async () => {
             try {
+                // Check for Speech Recognition support
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRecognition) {
+                    alert('Your browser does not support speech recognition. Please use Chrome, Edge, or Safari.');
+                    return;
+                }
+
+                // Reset transcripts
+                finalTranscript = '';
+                interimTranscript = '';
+                transcriptionText.textContent = 'Listening...';
+
+                // Initialize speech recognition
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                recognition.maxAlternatives = 1;
+
+                recognition.onresult = (event) => {
+                    interimTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    transcriptionText.textContent = finalTranscript + interimTranscript;
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    if (event.error === 'no-speech') {
+                        transcriptionText.textContent = finalTranscript + '\n(No speech detected, please speak louder)';
+                    }
+                };
+
+                recognition.onend = () => {
+                    // Restart recognition if still recording
+                    if (mediaRecorder && mediaRecorder.state === 'recording') {
+                        recognition.start();
+                    }
+                };
+
                 // Hide generate topic button and show recording controls
                 btnGenerateTopic.disabled = true;
                 btnStartRecording.disabled = true;
@@ -483,6 +532,9 @@
                 
                 visualize();
                 
+                // Start speech recognition
+                recognition.start();
+                
                 // Set up media recorder
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
@@ -492,6 +544,10 @@
                 };
                 
                 mediaRecorder.onstop = () => {
+                    // Stop recognition
+                    if (recognition) {
+                        recognition.stop();
+                    }
                     // Stop visualization
                     cancelAnimationFrame(animationId);
                     
@@ -546,6 +602,11 @@
         btnCancelRecording.addEventListener('click', () => {
             stopRecording();
             
+            // Stop recognition if active
+            if (recognition) {
+                recognition.stop();
+            }
+            
             // Reset UI
             recordingControls.classList.add('hidden');
             btnGenerateTopic.disabled = false;
@@ -555,6 +616,9 @@
             // Clear visualizer
             audioVisualizer.classList.add('hidden');
             audioVisualizer.innerHTML = '';
+            
+            // Reset transcript
+            transcriptionText.textContent = 'Your spoken response will appear here after recording.';
         });
 
         function updateTimer() {
@@ -579,29 +643,34 @@
             // Combine audio chunks into a blob
             const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
             
-            // Simulate transcription (in a real app, this would call a speech-to-text API)
-            transcriptionText.textContent = 'Transcribing your speech...';
-            
             try {
-                // Simulate API call delay
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                // Use the real transcript from speech recognition
+                let transcription = finalTranscript.trim();
                 
-                // Generate a sample transcription based on the topic
-                const topicText = topicDisplay.textContent.replace('<p><strong>Topic:</strong> ', '').replace('</p>', '');
-                const sampleTranscription = generateSampleTranscription(topicText);
-                
-                transcriptionText.textContent = sampleTranscription;
-                
-                // Evaluate the transcription
-                const evaluation = evaluateTranscription(sampleTranscription, topicText);
-                
-                scoreDisplay.textContent = evaluation.score;
-                
-                // Generate feedback
-                const feedback = generateFeedback(evaluation);
-                feedbackContent.innerHTML = feedback.map(item => `<div class="feedback-item">${item}</div>`).join('');
-                
-                updateStatus('Assessment complete!', 'success');
+                // Fallback if no speech was detected
+                if (!transcription || transcription.length === 0) {
+                    transcription = 'No speech was detected. Please try again and speak clearly.';
+                    transcriptionText.textContent = transcription;
+                    scoreDisplay.textContent = '-';
+                    feedbackContent.innerHTML = '<div class="feedback-item">No speech detected. Please ensure your microphone is working and speak clearly.</div>';
+                    updateStatus('No speech detected', 'error');
+                } else {
+                    transcriptionText.textContent = transcription;
+                    
+                    // Get topic text for evaluation
+                    const topicText = topicDisplay.textContent.replace('<p><strong>Topic:</strong> ', '').replace('</p>', '');
+                    
+                    // Evaluate the transcription
+                    const evaluation = evaluateTranscription(transcription, topicText);
+                    
+                    scoreDisplay.textContent = evaluation.score;
+                    
+                    // Generate feedback
+                    const feedback = generateFeedback(evaluation);
+                    feedbackContent.innerHTML = feedback.map(item => `<div class="feedback-item">${item}</div>`).join('');
+                    
+                    updateStatus('Assessment complete!', 'success');
+                }
                 
             } catch (error) {
                 console.error('Error processing recording:', error);

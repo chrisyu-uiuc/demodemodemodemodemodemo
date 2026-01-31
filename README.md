@@ -15,9 +15,10 @@ A modern, browser-based English speaking assessment system that generates topics
   - Browser-based microphone access
   - Countdown timer with visual feedback
 
-- **Speech Transcription**
-  - Automatic speech-to-text conversion
-  - Real-time transcription display
+- **Real Speech Transcription**
+  - Live speech-to-text using Web Speech API
+  - Real-time transcription as you speak
+  - Continuous recognition with interim results
   - Word count and sentence analysis
 
 - **AI Evaluation System**
@@ -45,12 +46,13 @@ A modern, browser-based English speaking assessment system that generates topics
 3. **Record Your Response**
    - Click "Start Recording" to begin your 60-second response
    - Speak clearly about the given topic
+   - See your words transcribed in real-time as you speak
    - The timer will count down from 60 seconds
    - Audio visualization shows your speaking volume
 
 4. **Get Your Results**
-   - After recording, your speech will be transcribed
-   - The AI evaluates your response across multiple dimensions
+   - Your speech is transcribed live as you speak
+   - After recording, the AI evaluates your actual transcribed response
    - View your overall score (0-100)
    - Read detailed feedback on your performance
    - Receive personalized suggestions for improvement
@@ -83,6 +85,7 @@ The system evaluates your English speaking skills based on:
 
 ### Dependencies
 
+- **Web Speech API**: Real-time speech-to-text transcription
 - **Web Audio API**: Audio recording and visualization
 - **MediaRecorder API**: Browser-based audio recording
 - **Modern Web APIs**: Microphone access, File API
@@ -91,14 +94,15 @@ The system evaluates your English speaking skills based on:
 
 1. Generate random English speaking topic
 2. Record 60-second audio response
-3. Transcribe speech to text
+3. Transcribe speech to text in real-time using Web Speech API
 4. Analyze transcription for evaluation metrics
 5. Calculate scores across multiple dimensions
 6. Generate detailed feedback and suggestions
 
 ### Browser Requirements
 
-- Modern browser with JavaScript enabled
+- Modern browser with JavaScript enabled (Chrome, Edge, or Safari recommended)
+- Web Speech API support for transcription
 - Microphone access requires HTTPS or localhost
 - Web Audio API support
 - Approximately 50-100 MB available memory for processing
@@ -113,10 +117,11 @@ The system evaluates your English speaking skills based on:
 
 ## Limitations
 
-- Accuracy depends on microphone quality
-- Requires microphone permissions
+- Speech recognition accuracy depends on microphone quality and speaking clarity
+- Requires microphone permissions and Web Speech API support
 - Performance can vary based on device capabilities
-- Internet connection required for full functionality
+- Internet connection required for speech recognition (uses cloud-based recognition)
+- Best results with Chrome, Edge, or Safari browsers
 
 ## License
 
