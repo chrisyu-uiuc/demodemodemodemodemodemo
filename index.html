@@ -481,7 +481,10 @@
                 recognition.onerror = (event) => {
                     console.error('Speech recognition error:', event.error);
                     if (event.error === 'no-speech') {
-                        transcriptionText.textContent = finalTranscript + '\n(No speech detected, please speak louder)';
+                        const hasTranscript = `${finalTranscript}${interimTranscript}`.trim().length > 0;
+                        if (!hasTranscript) {
+                            transcriptionText.textContent = 'No speech detected, please speak louder.';
+                        }
                     }
                 };
 
@@ -648,7 +651,7 @@
             
             try {
                 // Use the real transcript from speech recognition
-                let transcription = finalTranscript.trim();
+                let transcription = `${finalTranscript}${interimTranscript}`.trim();
                 
                 // Fallback if no speech was detected
                 if (!transcription || transcription.length === 0) {
