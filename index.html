@@ -693,34 +693,79 @@
 
         // AI-powered evaluation using Puter.js
         async function evaluateWithAI(transcription, topic) {
-            const prompt = `You are an expert English language evaluator. Analyze the following English speech transcription and provide a detailed assessment.
+            // Calculate word and sentence counts for better context
+            const wordCount = transcription.split(/\s+/).filter(w => w.length > 0).length;
+            const sentenceCount = transcription.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+            
+            const prompt = `You are a strict and expert English language evaluator with years of experience assessing IELTS and TOEFL speaking tests. Analyze the following English speech transcription critically and provide a VARIED, ACCURATE assessment based on the ACTUAL content.
 
-TOPIC: ${topic}
+IMPORTANT: Be CRITICAL and HONEST. Most speakers should receive scores between 40-70. Only truly exceptional responses with perfect grammar, advanced vocabulary, and excellent coherence should score above 80.
 
-TRANSCRIPTION: "${transcription}"
+TOPIC GIVEN: ${topic}
 
-Evaluate the speech based on these criteria:
-1. Fluency (0-100): Speaking pace, smoothness, natural flow, minimal pauses/hesitations
-2. Vocabulary (0-100): Word variety, appropriateness, use of advanced words
-3. Grammar (0-100): Sentence structure, verb conjugation, proper punctuation
-4. Relevance (0-100): Staying on topic, addressing the question directly, comprehensive coverage
-5. Pronunciation Clarity (0-100): Based on transcription quality indicators
+STUDENT'S ACTUAL TRANSCRIPTION: "${transcription}"
+
+WORD COUNT: ${wordCount} words
+SENTENCE COUNT: ${sentenceCount} sentences
+
+Carefully analyze the transcription for:
+
+1. **Fluency (0-100)**: 
+   - Look for filler words (okay, uh, um, like)
+   - Check for incomplete sentences or repetition
+   - Assess natural flow vs. choppy delivery
+   - Deduct points for excessive pauses (indicated by incomplete thoughts)
+
+2. **Vocabulary (0-100)**: 
+   - Check if vocabulary is basic (20-40), intermediate (40-65), or advanced (65-85)
+   - Look for word repetition (e.g., "okay" repeated multiple times = lower score)
+   - Assess variety and precision of word choice
+   - Reward use of topic-specific vocabulary
+
+3. **Grammar (0-100)**: 
+   - Count actual grammar errors (wrong verb forms, missing articles, incorrect prepositions)
+   - Check sentence structure (fragments, run-ons, proper clauses)
+   - Look for subject-verb agreement issues
+   - Each error should significantly reduce the score
+   - Examples: "I wasn't having" (awkward), "why the bank occur" (wrong verb form), "make it possible" (unclear)
+
+4. **Relevance (0-100)**: 
+   - Did they actually answer the question?
+   - Did they stay on topic throughout?
+   - Was the response comprehensive or vague?
+   - Deduct heavily if they went off-topic or gave generic answers
+
+5. **Coherence (0-100)**:
+   - Is the response logically organized?
+   - Are ideas connected properly?
+   - Does it make sense overall?
+
+CRITICAL EVALUATION GUIDELINES:
+- If the transcription has 3+ grammar errors: Grammar score MAX 50
+- If lots of filler words ("okay" repeated 5+ times): Fluency score MAX 45
+- If vocabulary is repetitive and basic: Vocabulary score MAX 50
+- If response is vague or off-topic: Relevance score MAX 40
+- If word count < 50: Overall score MAX 45
+- If transcription is hard to understand: All scores should be 30-50 range
 
 Provide your response in this exact JSON format:
 {
-  "score": <overall_score_0_to_100>,
-  "fluency": <fluency_score>,
-  "vocabulary": <vocabulary_score>,
-  "grammar": <grammar_score>,
-  "relevance": <relevance_score>,
-  "pronunciation": <pronunciation_score>,
-  "wordCount": <number_of_words>,
-  "strengths": [<list of 2-3 specific strengths>],
-  "weaknesses": [<list of 2-3 specific areas for improvement>],
-  "overallFeedback": "<brief 1-2 sentence summary>"
+  "score": <overall_score_0_to_100_BE_CRITICAL>,
+  "fluency": <fluency_score_BE_HONEST>,
+  "vocabulary": <vocabulary_score_CHECK_REPETITION>,
+  "grammar": <grammar_score_COUNT_ERRORS>,
+  "relevance": <relevance_score_DID_THEY_ANSWER>,
+  "coherence": <coherence_score>,
+  "wordCount": ${wordCount},
+  "sentenceCount": ${sentenceCount},
+  "grammarErrors": [<list specific grammar errors found, e.g., "wrong verb form: 'why the bank occur'", "awkward phrasing: 'I wasn't having a hard time'">],
+  "fillerWords": <count of filler words like okay, uh, um>,
+  "strengths": [<list 1-2 SPECIFIC actual strengths from THIS response, be honest>],
+  "weaknesses": [<list 2-3 SPECIFIC actual weaknesses from THIS response with examples>],
+  "overallFeedback": "<1-2 sentences SPECIFIC to this response, mention actual issues found>"
 }
 
-Be honest and accurate. A student who speaks briefly or has many errors should get a lower score (20-50). Average speakers should get 50-70. Excellent speakers with rich vocabulary and complex sentences should get 80-95.`;
+Remember: BE STRICT. Most responses should score 40-65. Only perfect or near-perfect responses should score above 75.`;
 
             try {
                 const response = await puter.ai.chat(prompt, { 
@@ -737,6 +782,15 @@ Be honest and accurate. A student who speaks briefly or has many errors should g
                     } else {
                         evaluation = JSON.parse(response);
                     }
+                    
+                    // Ensure all required fields are present
+                    if (!evaluation.score || !evaluation.fluency || !evaluation.vocabulary || !evaluation.grammar) {
+                        console.error('Incomplete AI response:', evaluation);
+                        return fallbackEvaluation(transcription, topic);
+                    }
+                    
+                    console.log('AI Evaluation:', evaluation);
+                    return evaluation;
                 } catch (parseError) {
                     console.error('Error parsing AI response:', parseError);
                     console.log('Raw response:', response);
@@ -744,7 +798,6 @@ Be honest and accurate. A student who speaks briefly or has many errors should g
                     return fallbackEvaluation(transcription, topic);
                 }
                 
-                return evaluation;
             } catch (error) {
                 console.error('AI evaluation error:', error);
                 // Fallback to local evaluation if AI fails
@@ -754,16 +807,109 @@ Be honest and accurate. A student who speaks briefly or has many errors should g
 
         // Fallback evaluation when AI is unavailable
         function fallbackEvaluation(text, topic) {
-            const wordCount = text.split(/\s+/).length;
-            const sentenceCount = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+            const words = text.split(/\s+/).filter(w => w.length > 0);
+            const wordCount = words.length;
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            const sentenceCount = sentences.length;
             
-            // Basic local scoring
-            const fluency = Math.min(100, Math.max(20, wordCount / 60 * 15));
-            const vocabulary = Math.min(100, Math.max(20, (new Set(text.toLowerCase().split(/\s+/)).size / wordCount) * 150));
-            const grammar = Math.min(100, Math.max(20, sentenceCount > 0 ? 60 : 30));
+            // Count filler words
+            const fillerWords = ['okay', 'ok', 'uh', 'um', 'like', 'you know', 'i mean', 'actually', 'basically'];
+            let fillerCount = 0;
+            const lowerText = text.toLowerCase();
+            fillerWords.forEach(filler => {
+                const matches = lowerText.match(new RegExp('\\b' + filler + '\\b', 'g'));
+                if (matches) fillerCount += matches.length;
+            });
+            
+            // Detect repetitive words
+            const wordFreq = {};
+            words.forEach(word => {
+                const lower = word.toLowerCase();
+                wordFreq[lower] = (wordFreq[lower] || 0) + 1;
+            });
+            const uniqueWords = Object.keys(wordFreq).length;
+            const repetitionRatio = uniqueWords / wordCount;
+            
+            // Calculate fluency (penalize short responses and filler words)
+            let fluency = 50; // Base score
+            if (wordCount < 40) {
+                fluency = Math.max(20, wordCount / 40 * 40);
+            } else if (wordCount >= 60) {
+                fluency = Math.min(70, 50 + (wordCount - 60) / 3);
+            }
+            fluency -= Math.min(20, fillerCount * 3); // Deduct for filler words
+            fluency = Math.max(20, Math.min(85, fluency));
+            
+            // Calculate vocabulary (reward diversity, penalize repetition)
+            let vocabulary = repetitionRatio * 100;
+            if (repetitionRatio < 0.6) {
+                vocabulary = Math.max(25, vocabulary * 0.8);
+            }
+            vocabulary = Math.max(25, Math.min(80, vocabulary));
+            
+            // Calculate grammar (basic heuristic)
+            let grammar = 55; // Base score
+            const avgWordsPerSentence = sentenceCount > 0 ? wordCount / sentenceCount : 0;
+            if (avgWordsPerSentence < 5) {
+                grammar = 35; // Very short fragments
+            } else if (avgWordsPerSentence > 25) {
+                grammar = 45; // Possibly run-on sentences
+            }
+            
+            // Detect potential grammar issues
+            const grammarIssues = [];
+            if (text.match(/\b(I|he|she|it)\s+(was|were|are|am|is)\s+\w+ing\s+a\b/i)) {
+                grammar -= 5;
+                grammarIssues.push("Possible awkward verb construction");
+            }
+            if (text.match(/\b(the|a)\s+(the|a)\b/i)) {
+                grammar -= 8;
+                grammarIssues.push("Article repetition detected");
+            }
+            if (sentenceCount < wordCount / 25 && wordCount > 50) {
+                grammar -= 10;
+                grammarIssues.push("Possible run-on sentences");
+            }
+            
+            grammar = Math.max(25, Math.min(75, grammar));
+            
+            // Calculate relevance
             const relevance = calculateRelevanceScore(text, topic);
             
+            // Calculate overall score
             const score = Math.round((fluency + vocabulary + grammar + relevance) / 4);
+            
+            // Generate specific feedback
+            const strengths = [];
+            const weaknesses = [];
+            
+            if (wordCount >= 80) {
+                strengths.push("Adequate response length");
+            } else {
+                weaknesses.push(`Response is too short (${wordCount} words). Aim for at least 80 words.`);
+            }
+            
+            if (fillerCount > 5) {
+                weaknesses.push(`Too many filler words (${fillerCount} detected). Practice speaking more smoothly.`);
+            }
+            
+            if (repetitionRatio < 0.6) {
+                weaknesses.push("Limited vocabulary variety. Try using more diverse words.");
+            } else if (repetitionRatio > 0.75) {
+                strengths.push("Good vocabulary diversity");
+            }
+            
+            if (grammarIssues.length > 0) {
+                weaknesses.push("Grammar issues detected. Review sentence structure.");
+            }
+            
+            if (strengths.length === 0) {
+                strengths.push("Completed the speaking task");
+            }
+            
+            if (weaknesses.length === 0) {
+                weaknesses.push("Continue practicing to further improve");
+            }
             
             return {
                 score: score,
@@ -771,11 +917,14 @@ Be honest and accurate. A student who speaks briefly or has many errors should g
                 vocabulary: Math.round(vocabulary),
                 grammar: Math.round(grammar),
                 relevance: Math.round(relevance),
-                pronunciation: Math.round((fluency + grammar) / 2),
+                coherence: Math.round((grammar + relevance) / 2),
                 wordCount: wordCount,
-                strengths: ["Attempted to answer the topic"],
-                weaknesses: ["Unable to get AI analysis"],
-                overallFeedback: "Basic evaluation performed. AI analysis was unavailable."
+                sentenceCount: sentenceCount,
+                fillerWords: fillerCount,
+                grammarErrors: grammarIssues.length > 0 ? grammarIssues : undefined,
+                strengths: strengths,
+                weaknesses: weaknesses,
+                overallFeedback: `Basic local evaluation (AI unavailable). Spoke ${wordCount} words with ${fillerCount} filler words detected.`
             };
         }
 
@@ -802,37 +951,105 @@ Be honest and accurate. A student who speaks briefly or has many errors should g
             
             // Overall feedback based on score
             if (evaluation.score >= 80) {
-                feedback.push(`🌟 Excellent job! ${evaluation.overallFeedback || "You demonstrated strong English speaking skills."}`);
+                feedback.push(`🌟 Excellent performance! ${evaluation.overallFeedback || "You demonstrated strong English speaking skills."}`);
             } else if (evaluation.score >= 60) {
-                feedback.push(`👍 Good effort! ${evaluation.overallFeedback || "You have solid English speaking skills with room for improvement."}`);
+                feedback.push(`👍 Good work! ${evaluation.overallFeedback || "You have solid English speaking skills with room for improvement."}`);
             } else if (evaluation.score >= 40) {
                 feedback.push(`📈 Fair performance. ${evaluation.overallFeedback || "You have basic English speaking skills that need development."}`);
             } else {
                 feedback.push(`📝 Needs improvement. ${evaluation.overallFeedback || "Focus on building your English speaking foundation."}`);
             }
             
-            // Add score breakdown
-            feedback.push(`📊 Score Breakdown - Fluency: ${evaluation.fluency}/100 | Vocabulary: ${evaluation.vocabulary}/100 | Grammar: ${evaluation.grammar}/100 | Relevance: ${evaluation.relevance}/100`);
+            // Detailed score breakdown with more metrics
+            let scoreBreakdown = `📊 Detailed Scores:<br/>`;
+            scoreBreakdown += `&nbsp;&nbsp;&nbsp;• Fluency: ${evaluation.fluency}/100`;
+            
+            // Add fluency context if filler words count is available
+            if (evaluation.fillerWords !== undefined && evaluation.fillerWords > 0) {
+                scoreBreakdown += ` (${evaluation.fillerWords} filler words detected)`;
+            }
+            
+            scoreBreakdown += `<br/>&nbsp;&nbsp;&nbsp;• Vocabulary: ${evaluation.vocabulary}/100`;
+            scoreBreakdown += `<br/>&nbsp;&nbsp;&nbsp;• Grammar: ${evaluation.grammar}/100`;
+            
+            // Add grammar errors if available
+            if (evaluation.grammarErrors && evaluation.grammarErrors.length > 0) {
+                scoreBreakdown += ` (${evaluation.grammarErrors.length} errors found)`;
+            }
+            
+            scoreBreakdown += `<br/>&nbsp;&nbsp;&nbsp;• Relevance: ${evaluation.relevance}/100`;
+            
+            if (evaluation.coherence !== undefined) {
+                scoreBreakdown += `<br/>&nbsp;&nbsp;&nbsp;• Coherence: ${evaluation.coherence}/100`;
+            }
+            
+            feedback.push(scoreBreakdown);
+            
+            // Grammar errors (specific issues)
+            if (evaluation.grammarErrors && evaluation.grammarErrors.length > 0) {
+                let grammarFeedback = `<strong>❌ Grammar Issues Found:</strong><br/>`;
+                evaluation.grammarErrors.forEach((error, index) => {
+                    grammarFeedback += `&nbsp;&nbsp;&nbsp;${index + 1}. ${error}<br/>`;
+                });
+                feedback.push(grammarFeedback);
+            }
             
             // Strengths
             if (evaluation.strengths && evaluation.strengths.length > 0) {
-                feedback.push(`💪 Strengths: ${evaluation.strengths.join('; ')}`);
+                let strengthsFeedback = `<strong>💪 Your Strengths:</strong><br/>`;
+                evaluation.strengths.forEach((strength, index) => {
+                    strengthsFeedback += `&nbsp;&nbsp;&nbsp;• ${strength}<br/>`;
+                });
+                feedback.push(strengthsFeedback);
             }
             
             // Areas for improvement
             if (evaluation.weaknesses && evaluation.weaknesses.length > 0) {
-                feedback.push(`🎯 Areas to improve: ${evaluation.weaknesses.join('; ')}`);
+                let weaknessesFeedback = `<strong>🎯 Areas to Improve:</strong><br/>`;
+                evaluation.weaknesses.forEach((weakness, index) => {
+                    weaknessesFeedback += `&nbsp;&nbsp;&nbsp;• ${weakness}<br/>`;
+                });
+                feedback.push(weaknessesFeedback);
             }
             
-            // Word count info
+            // Word and sentence count info
             if (evaluation.wordCount) {
-                const wordCountFeedback = evaluation.wordCount < 30 
-                    ? `You spoke ${evaluation.wordCount} words. Try to speak more to fully develop your ideas.`
-                    : evaluation.wordCount > 100
-                    ? `You spoke ${evaluation.wordCount} words. Good length for a 1-minute response!`
-                    : `You spoke ${evaluation.wordCount} words, which is a reasonable length.`;
-                feedback.push(`🗣️ ${wordCountFeedback}`);
+                let lengthFeedback = `<strong>📝 Response Length:</strong><br/>`;
+                lengthFeedback += `&nbsp;&nbsp;&nbsp;• Words: ${evaluation.wordCount}`;
+                
+                if (evaluation.wordCount < 40) {
+                    lengthFeedback += ` (Too short - aim for 80-120 words)`;
+                } else if (evaluation.wordCount > 120) {
+                    lengthFeedback += ` (Good length!)`;
+                }
+                
+                if (evaluation.sentenceCount) {
+                    lengthFeedback += `<br/>&nbsp;&nbsp;&nbsp;• Sentences: ${evaluation.sentenceCount}`;
+                    const avgWordsPerSentence = Math.round(evaluation.wordCount / evaluation.sentenceCount);
+                    lengthFeedback += `<br/>&nbsp;&nbsp;&nbsp;• Average words per sentence: ${avgWordsPerSentence}`;
+                    
+                    if (avgWordsPerSentence < 8) {
+                        lengthFeedback += ` (Try using more complex sentences)`;
+                    } else if (avgWordsPerSentence > 20) {
+                        lengthFeedback += ` (Consider breaking up long sentences)`;
+                    }
+                }
+                
+                feedback.push(lengthFeedback);
             }
+            
+            // Recommendation based on overall performance
+            let recommendation = `<strong>💡 Recommendation:</strong><br/>&nbsp;&nbsp;&nbsp;`;
+            if (evaluation.score >= 80) {
+                recommendation += `Excellent work! Keep practicing to maintain this level. Focus on using even more varied expressions.`;
+            } else if (evaluation.score >= 60) {
+                recommendation += `You're on the right track. Practice speaking more regularly and focus on the areas mentioned above.`;
+            } else if (evaluation.score >= 40) {
+                recommendation += `Regular practice is essential. Focus on grammar rules, expand your vocabulary, and speak English daily.`;
+            } else {
+                recommendation += `Start with basic grammar exercises and simple conversation practice. Consider taking structured English lessons.`;
+            }
+            feedback.push(recommendation);
             
             return feedback;
         }
