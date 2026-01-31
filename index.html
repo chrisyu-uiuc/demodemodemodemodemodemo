@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>License Plate Detection & Recognition</title>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <script src="https://docs.opencv.org/4.8.0/opencv.js"></script>
+    <title>Flappy Bird - HTML5 Game</title>
     <style>
         * {
             margin: 0;
@@ -14,800 +12,581 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            color: #fff;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            padding: 30px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 30px;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(90deg, #00d9ff, #00ff88);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            color: #888;
-            font-size: 1.1rem;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        @media (max-width: 900px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .panel {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .panel h2 {
-            font-size: 1.3rem;
-            margin-bottom: 20px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
             display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 10px;
-        }
-
-        .panel h2::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: linear-gradient(180deg, #00d9ff, #00ff88);
-            border-radius: 2px;
-        }
-
-        .upload-area {
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
-        }
-
-        .upload-area:hover,
-        .upload-area.dragover {
-            border-color: #00d9ff;
-            background: rgba(0, 217, 255, 0.1);
-        }
-
-        .upload-area i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        .upload-area p {
-            color: #aaa;
-            font-size: 1.1rem;
-        }
-
-        .upload-area input {
-            display: none;
-        }
-
-        .camera-section {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 5px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(90deg, #00d9ff, #00ff88);
-            color: #1a1a2e;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 217, 255, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        #video-container {
-            display: none;
-            margin-top: 20px;
-            position: relative;
-        }
-
-        #video {
-            width: 100%;
-            border-radius: 10px;
-            background: #000;
-        }
-
-        .image-preview {
-            display: none;
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .image-preview img {
-            max-width: 100%;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-
-        .results-panel {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .result-item {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
-        }
-
-        .result-label {
-            color: #888;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-        }
-
-        .result-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #00ff88;
-        }
-
-        .confidence-bar {
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            margin-top: 10px;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
             overflow: hidden;
         }
 
-        .confidence-fill {
+        .game-container {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 70%, #90EE90 100%);
+            border: 3px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, #00d9ff, #00ff88);
-            border-radius: 3px;
-            transition: width 0.5s ease;
+            background: transparent;
         }
 
-        .processing-indicator {
-            display: none;
+        .game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .score {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
-            padding: 40px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            display: none;
         }
 
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #00d9ff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .processing-text {
-            color: #aaa;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        .history-panel {
-            margin-top: 30px;
-        }
-
-        .history-list {
-            list-style: none;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .history-plate {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #00ff88;
-        }
-
-        .history-time {
-            color: #888;
-            font-size: 0.9rem;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .status-success {
-            background: rgba(0, 255, 136, 0.2);
-            color: #00ff88;
-        }
-
-        .status-processing {
-            background: rgba(0, 217, 255, 0.2);
-            color: #00d9ff;
-        }
-
-        .status-error {
-            background: rgba(255, 68, 68, 0.2);
+        .game-over h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
             color: #ff4444;
         }
 
-        .canvas-container {
-            display: none;
-            margin-top: 20px;
+        .game-over p {
+            font-size: 24px;
+            margin-bottom: 10px;
         }
 
-        #processed-canvas {
-            max-width: 100%;
+        .game-over .score-display {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffdd44;
+            margin: 20px 0;
+        }
+
+        .game-over .restart-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
             border-radius: 10px;
+            cursor: pointer;
+            pointer-events: all;
+            transition: background 0.3s;
         }
 
-        .settings-panel {
-            margin-top: 30px;
+        .game-over .restart-btn:hover {
+            background: #45a049;
         }
 
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            text-align: center;
+            font-size: 16px;
+            pointer-events: none;
         }
 
-        .setting-label {
-            color: #aaa;
+        .mobile-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            pointer-events: all;
+            touch-action: manipulation;
         }
 
-        .setting-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        @media (max-width: 500px) {
+            .game-container {
+                width: 320px;
+                height: 480px;
+            }
         }
 
-        input[type="range"] {
-            width: 150px;
-            accent-color: #00d9ff;
+        .pause-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            pointer-events: all;
         }
 
-        select {
-            padding: 8px 15px;
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        select option {
-            background: #1a1a2e;
+        .pause-btn:hover {
+            background: rgba(0,0,0,0.7);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🚗 License Plate Detector</h1>
-            <p class="subtitle">Detect and recognize license plates from images or camera feed</p>
-        </header>
-
-        <div class="main-content">
-            <div class="left-panel">
-                <div class="panel">
-                    <h2>Upload Image</h2>
-                    <div class="upload-area" id="upload-area">
-                        <i>📁</i>
-                        <p>Drag & drop an image here or click to select</p>
-                        <input type="file" id="file-input" accept="image/*">
-                    </div>
-                    <div class="camera-section">
-                        <button class="btn btn-secondary" id="btn-camera">📷 Open Camera</button>
-                        <button class="btn btn-secondary" id="btn-capture" style="display: none;">📸 Capture</button>
-                        <button class="btn btn-secondary" id="btn-close-camera" style="display: none;">✕ Close Camera</button>
-                    </div>
-                    <div id="video-container">
-                        <video id="video" autoplay playsinline></video>
-                    </div>
-                    <div class="image-preview" id="image-preview">
-                        <img id="preview-image" src="" alt="Preview">
-                        <button class="btn btn-primary" id="btn-process">🔍 Detect Plate</button>
-                    </div>
-                    <div class="canvas-container">
-                        <canvas id="processed-canvas"></canvas>
-                    </div>
-                </div>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div class="game-ui">
+            <div class="score" id="score">0</div>
+            <button class="pause-btn" id="pauseBtn">⏸️</button>
+            <div class="game-over" id="gameOver">
+                <h1>GAME OVER</h1>
+                <p>Your Score:</p>
+                <div class="score-display" id="finalScore">0</div>
+                <p>Best Score: <span id="bestScore">0</span></p>
+                <button class="restart-btn" id="restartBtn">Play Again</button>
             </div>
-
-            <div class="right-panel">
-                <div class="results-panel">
-                    <h2>Results</h2>
-                    <div class="processing-indicator" id="processing">
-                        <div class="spinner"></div>
-                        <p class="processing-text">Processing image...</p>
-                    </div>
-                    <div id="results-content">
-                        <div class="result-item">
-                            <div class="result-label">Detected Plate</div>
-                            <div class="result-value" id="plate-number">--</div>
-                            <div class="confidence-bar">
-                                <div class="confidence-fill" id="confidence-fill" style="width: 0%"></div>
-                            </div>
-                            <div class="result-label" id="confidence-text" style="margin-top: 10px;">Confidence: 0%</div>
-                        </div>
-                        <div class="result-item">
-                            <div class="result-label">Processing Time</div>
-                            <div class="result-value" id="processing-time" style="font-size: 1.2rem;">-- ms</div>
-                        </div>
-                        <div class="result-item">
-                            <div class="result-label">Status</div>
-                            <span class="status-badge status-processing" id="status-badge">Waiting for input</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel history-panel">
-                    <h2>Recent Detections</h2>
-                    <ul class="history-list" id="history-list">
-                        <li style="text-align: center; color: #666; padding: 20px;">No detections yet</li>
-                    </ul>
-                    <button class="btn btn-secondary" id="btn-clear-history" style="width: 100%; margin-top: 15px;">🗑️ Clear History</button>
-                </div>
+            <div class="instructions" id="instructions">
+                Click or tap to make the bird fly!<br>
+                Avoid the pipes to score points.
             </div>
         </div>
-
-        <div class="panel settings-panel">
-            <h2>Settings</h2>
-            <div class="setting-row">
-                <span class="setting-label">OCR Language</span>
-                <div class="setting-control">
-                    <select id="language-select">
-                        <option value="eng">English</option>
-                        <option value="deu">German</option>
-                        <option value="fra">French</option>
-                        <option value="spa">Spanish</option>
-                    </select>
-                </div>
-            </div>
-            <div class="setting-row">
-                <span class="setting-label">Contrast Enhancement</span>
-                <div class="setting-control">
-                    <input type="range" id="contrast-slider" min="0" max="100" value="30">
-                </div>
-            </div>
-            <div class="setting-row">
-                <span class="setting-label">Threshold Value</span>
-                <div class="setting-control">
-                    <input type="range" id="threshold-slider" min="0" max="255" value="128">
-                </div>
-            </div>
-        </div>
+        <div class="mobile-controls" id="mobileControls"></div>
     </div>
 
     <script>
-        // Global variables
-        let stream = null;
-        let currentImage = null;
-        let detectionHistory = [];
-        let opencvReady = false;
-        let tesseractReady = false;
-
-        // DOM Elements
-        const uploadArea = document.getElementById('upload-area');
-        const fileInput = document.getElementById('file-input');
-        const btnCamera = document.getElementById('btn-camera');
-        const btnCapture = document.getElementById('btn-capture');
-        const btnCloseCamera = document.getElementById('btn-close-camera');
-        const videoContainer = document.getElementById('video-container');
-        const video = document.getElementById('video');
-        const imagePreview = document.getElementById('image-preview');
-        const previewImage = document.getElementById('preview-image');
-        const btnProcess = document.getElementById('btn-process');
-        const processing = document.getElementById('processing');
-        const plateNumber = document.getElementById('plate-number');
-        const confidenceFill = document.getElementById('confidence-fill');
-        const confidenceText = document.getElementById('confidence-text');
-        const processingTime = document.getElementById('processing-time');
-        const statusBadge = document.getElementById('status-badge');
-        const historyList = document.getElementById('history-list');
-        const btnClearHistory = document.getElementById('btn-clear-history');
-        const processedCanvas = document.getElementById('processed-canvas');
-        const canvasContainer = document.querySelector('.canvas-container');
-        const languageSelect = document.getElementById('language-select');
-        const contrastSlider = document.getElementById('contrast-slider');
-        const thresholdSlider = document.getElementById('threshold-slider');
-
-        // Initialize OpenCV
-        function onOpenCvReady() {
-            opencvReady = true;
-            console.log('OpenCV.js is ready');
-        }
-
-        // Check if OpenCV is loaded
-        if (typeof cv !== 'undefined' && cv.getBuildInformation) {
-            onOpenCvReady();
-        } else {
-            cv['onRuntimeInitialized'] = onOpenCvReady;
-        }
-
-        // Initialize Tesseract
-        async function initTesseract() {
-            try {
-                await Tesseract.recognize('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'eng');
-                tesseractReady = true;
-                console.log('Tesseract.js is ready');
-            } catch (error) {
-                console.error('Failed to initialize Tesseract:', error);
+        class FlappyBirdGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.score = 0;
+                this.bestScore = localStorage.getItem('flappyBirdBestScore') || 0;
+                this.gameRunning = false;
+                this.gameOver = false;
+                this.paused = false;
+                
+                // Game objects
+                this.bird = {
+                    x: 80,
+                    y: 300,
+                    width: 30,
+                    height: 25,
+                    velocity: 0,
+                    gravity: 0.6,
+                    jumpStrength: -12,
+                    rotation: 0
+                };
+                
+                this.pipes = [];
+                this.groundY = this.canvas.height - 50;
+                
+                // Game settings
+                this.pipeWidth = 60;
+                this.pipeGap = 150;
+                this.pipeSpeed = 2;
+                this.pipeSpawnRate = 90; // frames between pipe spawns
+                this.frameCount = 0;
+                
+                // Sound effects (using Web Audio API)
+                this.audioContext = null;
+                this.initAudio();
+                
+                this.init();
             }
-        }
-
-        initTesseract();
-
-        // File upload handlers
-        uploadArea.addEventListener('click', () => fileInput.click());
-
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) {
-                handleImageFile(file);
+            
+            initAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.log('Audio not supported');
+                }
             }
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                handleImageFile(file);
+            
+            playSound(frequency, duration, type = 'sine') {
+                if (!this.audioContext) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + duration);
             }
-        });
-
-        function handleImageFile(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                currentImage = e.target.result;
-                previewImage.src = currentImage;
-                imagePreview.style.display = 'block';
-                videoContainer.style.display = 'none';
-                stopCamera();
-                updateStatus('Ready to process', 'processing');
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // Camera handlers
-        btnCamera.addEventListener('click', async () => {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
+            
+            init() {
+                this.setupEventListeners();
+                this.reset();
+                this.gameLoop();
+            }
+            
+            setupEventListeners() {
+                // Mobile controls
+                const mobileControls = document.getElementById('mobileControls');
+                mobileControls.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.handleInput();
                 });
-                video.srcObject = stream;
-                videoContainer.style.display = 'block';
-                imagePreview.style.display = 'none';
-                btnCamera.style.display = 'none';
-                btnCapture.style.display = 'inline-block';
-                btnCloseCamera.style.display = 'inline-block';
-                updateStatus('Camera active', 'processing');
-            } catch (error) {
-                console.error('Camera error:', error);
-                alert('Unable to access camera. Please ensure camera permissions are granted.');
-            }
-        });
-
-        btnCapture.addEventListener('click', () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
-            currentImage = canvas.toDataURL('image/jpeg', 0.9);
-            previewImage.src = currentImage;
-            imagePreview.style.display = 'block';
-            stopCamera();
-            updateStatus('Ready to process', 'processing');
-        });
-
-        btnCloseCamera.addEventListener('click', stopCamera);
-
-        function stopCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            videoContainer.style.display = 'none';
-            btnCamera.style.display = 'inline-block';
-            btnCapture.style.display = 'none';
-            btnCloseCamera.style.display = 'none';
-        }
-
-        // Process image
-        btnProcess.addEventListener('click', processImage);
-
-        async function processImage() {
-            if (!currentImage) {
-                alert('Please select or capture an image first.');
-                return;
-            }
-
-            updateStatus('Processing...', 'processing');
-            processing.style.display = 'block';
-            
-            const startTime = performance.now();
-
-            try {
-                // Preprocess image
-                const processedImage = await preprocessImage(currentImage);
                 
-                // Display processed image
-                const img = new Image();
-                img.onload = () => {
-                    processedCanvas.width = img.width;
-                    processedCanvas.height = img.height;
-                    const ctx = processedCanvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    canvasContainer.style.display = 'block';
-                };
-                img.src = processedImage;
-
-                // Perform OCR
-                const result = await performOCR(processedImage);
+                // Click controls
+                this.canvas.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.handleInput();
+                });
                 
-                const endTime = performance.now();
-                const timeTaken = Math.round(endTime - startTime);
-
-                // Update results
-                displayResults(result, timeTaken);
-                
-            } catch (error) {
-                console.error('Processing error:', error);
-                updateStatus('Error processing image', 'error');
-                plateNumber.textContent = 'Error';
-            }
-
-            processing.style.display = 'none';
-        }
-
-        async function preprocessImage(imageData) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.crossOrigin = 'Anonymous';
-                img.onload = () => {
-                    try {
-                        // Create canvas for processing
-                        const canvas = document.createElement('canvas');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0);
-
-                        // Get image data
-                        let src = cv.imread(canvas);
-                        let dst = new cv.Mat();
-
-                        // Convert to grayscale
-                        cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-
-                        // Apply Gaussian blur to reduce noise
-                        let ksize = new cv.Size(5, 5);
-                        cv.GaussianBlur(src, dst, ksize, 0, 0, cv.BORDER_DEFAULT);
-
-                        // Apply contrast enhancement
-                        const contrast = contrastSlider.value / 100;
-                        dst.convertTo(dst, -1, 1 + contrast, 0);
-
-                        // Apply thresholding
-                        const threshold = parseInt(thresholdSlider.value);
-                        cv.threshold(dst, dst, threshold, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
-
-                        // Morphological operations
-                        let kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
-                        cv.morphologyEx(dst, dst, cv.MORPH_OPEN, kernel);
-                        cv.morphologyEx(dst, dst, cv.MORPH_CLOSE, kernel);
-
-                        // Find contours for potential plate regions
-                        let contours = new cv.MatVector();
-                        let hierarchy = new cv.Mat();
-                        cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-
-                        // Find the largest rectangular contour (likely the plate)
-                        let maxArea = 0;
-                        let maxContour = -1;
-                        for (let i = 0; i < contours.size(); ++i) {
-                            let contour = contours.get(i);
-                            let area = cv.contourArea(contour);
-                            if (area > maxArea) {
-                                maxArea = area;
-                                maxContour = i;
-                            }
-                        }
-
-                        // Draw contours on the processed image
-                        cv.imshow(canvas, dst);
-
-                        // Cleanup
-                        src.delete();
-                        dst.delete();
-                        contours.delete();
-                        hierarchy.delete();
-
-                        resolve(canvas.toDataURL('image/png'));
-                    } catch (error) {
-                        reject(error);
+                // Keyboard controls
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space' || e.code === 'ArrowUp') {
+                        e.preventDefault();
+                        this.handleInput();
                     }
-                };
-                img.onerror = reject;
-                img.src = imageData;
-            });
-        }
-
-        async function performOCR(imageData) {
-            const language = languageSelect.value;
-            
-            const result = await Tesseract.recognize(imageData, language, {
-                logger: (m) => console.log(m)
-            });
-
-            // Extract and clean the text
-            let text = result.data.text;
-            
-            // Filter for license plate patterns
-            // Typical patterns: ABC123, AB-123-CD, 123-ABC-456, etc.
-            text = text.toUpperCase()
-                       .replace(/[^A-Z0-9]/g, '')
-                       .replace(/\s+/g, '');
-
-            // Try to extract a license plate pattern
-            const platePattern = text.match(/[A-Z]{2,4}\d{2,4}[A-Z]{0,3}|\d{2,4}[A-Z]{2,3}\d{2,4}/);
-            
-            const detectedPlate = platePattern ? platePattern[0] : text.substring(0, 10);
-            const confidence = result.data.confidence;
-
-            return {
-                text: detectedPlate || 'No plate detected',
-                confidence: confidence || 0
-            };
-        }
-
-        function displayResults(result, time) {
-            plateNumber.textContent = result.text;
-            confidenceFill.style.width = result.confidence + '%';
-            confidenceText.textContent = `Confidence: ${result.confidence.toFixed(1)}%`;
-            processingTime.textContent = `${time} ms`;
-
-            if (result.confidence > 60) {
-                updateStatus('Plate detected', 'success');
-                addToHistory(result.text, result.confidence);
-            } else {
-                updateStatus('Low confidence', 'error');
-            }
-        }
-
-        function updateStatus(message, type) {
-            statusBadge.textContent = message;
-            statusBadge.className = 'status-badge';
-            switch (type) {
-                case 'success':
-                    statusBadge.classList.add('status-success');
-                    break;
-                case 'error':
-                    statusBadge.classList.add('status-error');
-                    break;
-                default:
-                    statusBadge.classList.add('status-processing');
-            }
-        }
-
-        function addToHistory(plate, confidence) {
-            const timestamp = new Date().toLocaleTimeString();
-            detectionHistory.unshift({ plate, confidence, timestamp });
-            
-            // Keep only last 10 entries
-            if (detectionHistory.length > 10) {
-                detectionHistory.pop();
+                });
+                
+                // Pause button
+                document.getElementById('pauseBtn').addEventListener('click', () => {
+                    this.togglePause();
+                });
+                
+                // Restart button
+                document.getElementById('restartBtn').addEventListener('click', () => {
+                    this.restart();
+                });
+                
+                // Prevent context menu on right click
+                this.canvas.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                });
             }
             
-            renderHistory();
-        }
-
-        function renderHistory() {
-            if (detectionHistory.length === 0) {
-                historyList.innerHTML = '<li style="text-align: center; color: #666; padding: 20px;">No detections yet</li>';
-                return;
+            handleInput() {
+                if (this.gameOver) {
+                    this.restart();
+                } else if (!this.gameRunning) {
+                    this.start();
+                } else if (!this.paused) {
+                    this.bird.velocity = this.bird.jumpStrength;
+                    this.playSound(400, 0.1, 'square');
+                }
             }
-
-            historyList.innerHTML = detectionHistory.map(item => `
-                <li class="history-item">
-                    <span class="history-plate">${item.plate}</span>
-                    <span class="history-time">${item.timestamp}</span>
-                </li>
-            `).join('');
+            
+            start() {
+                this.gameRunning = true;
+                this.gameOver = false;
+                this.paused = false;
+                document.getElementById('instructions').style.display = 'none';
+                document.getElementById('pauseBtn').textContent = '⏸️';
+            }
+            
+            restart() {
+                this.reset();
+                this.gameRunning = true;
+                this.gameOver = false;
+                this.paused = false;
+                document.getElementById('gameOver').style.display = 'none';
+                document.getElementById('instructions').style.display = 'block';
+                document.getElementById('pauseBtn').textContent = '⏸️';
+            }
+            
+            reset() {
+                this.score = 0;
+                this.pipes = [];
+                this.frameCount = 0;
+                this.bird.x = 80;
+                this.bird.y = 300;
+                this.bird.velocity = 0;
+                this.bird.rotation = 0;
+                document.getElementById('score').textContent = '0';
+            }
+            
+            togglePause() {
+                if (!this.gameRunning || this.gameOver) return;
+                
+                this.paused = !this.paused;
+                document.getElementById('pauseBtn').textContent = this.paused ? '▶️' : '⏸️';
+            }
+            
+            update() {
+                if (!this.gameRunning || this.paused || this.gameOver) return;
+                
+                // Update bird
+                this.bird.velocity += this.bird.gravity;
+                this.bird.y += this.bird.velocity;
+                
+                // Update bird rotation based on velocity
+                this.bird.rotation = Math.min(Math.max(this.bird.velocity * 3, -30), 90);
+                
+                // Check ground collision
+                if (this.bird.y + this.bird.height >= this.groundY) {
+                    this.gameOverSequence();
+                    return;
+                }
+                
+                // Check ceiling collision
+                if (this.bird.y <= 0) {
+                    this.bird.y = 0;
+                    this.bird.velocity = 0;
+                }
+                
+                // Spawn pipes
+                this.frameCount++;
+                if (this.frameCount % this.pipeSpawnRate === 0) {
+                    this.spawnPipe();
+                }
+                
+                // Update pipes
+                for (let i = this.pipes.length - 1; i >= 0; i--) {
+                    const pipe = this.pipes[i];
+                    pipe.x -= this.pipeSpeed;
+                    
+                    // Remove pipes that are off screen
+                    if (pipe.x + pipe.width < 0) {
+                        this.pipes.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Check collision with pipes
+                    if (this.checkPipeCollision(pipe)) {
+                        this.gameOverSequence();
+                        return;
+                    }
+                    
+                    // Check if bird passed through pipe
+                    if (!pipe.scored && pipe.x + pipe.width < this.bird.x) {
+                        pipe.scored = true;
+                        this.score++;
+                        document.getElementById('score').textContent = this.score;
+                        this.playSound(600, 0.2, 'sawtooth');
+                        
+                        // Increase difficulty
+                        if (this.score % 5 === 0) {
+                            this.pipeSpeed += 0.2;
+                        }
+                    }
+                }
+            }
+            
+            spawnPipe() {
+                const minHeight = 50;
+                const maxHeight = this.canvas.height - this.pipeGap - this.groundY - minHeight;
+                const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
+                
+                this.pipes.push({
+                    x: this.canvas.width,
+                    topHeight: topHeight,
+                    bottomY: topHeight + this.pipeGap,
+                    width: this.pipeWidth,
+                    scored: false
+                });
+            }
+            
+            checkPipeCollision(pipe) {
+                // Check if bird is within pipe x-range
+                if (this.bird.x + this.bird.width > pipe.x && 
+                    this.bird.x < pipe.x + pipe.width) {
+                    
+                    // Check if bird hits top or bottom pipe
+                    if (this.bird.y < pipe.topHeight || 
+                        this.bird.y + this.bird.height > pipe.bottomY) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            gameOverSequence() {
+                this.gameOver = true;
+                this.gameRunning = false;
+                
+                // Play crash sound
+                this.playSound(150, 0.5, 'sawtooth');
+                
+                // Update best score
+                if (this.score > this.bestScore) {
+                    this.bestScore = this.score;
+                    localStorage.setItem('flappyBirdBestScore', this.bestScore);
+                }
+                
+                // Show game over screen
+                setTimeout(() => {
+                    document.getElementById('finalScore').textContent = this.score;
+                    document.getElementById('bestScore').textContent = this.bestScore;
+                    document.getElementById('gameOver').style.display = 'block';
+                }, 500);
+            }
+            
+            draw() {
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw background gradient
+                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(0.7, '#98FB98');
+                gradient.addColorStop(1, '#90EE90');
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw clouds (simple circles)
+                this.drawClouds();
+                
+                // Draw pipes
+                this.drawPipes();
+                
+                // Draw ground
+                this.drawGround();
+                
+                // Draw bird
+                this.drawBird();
+            }
+            
+            drawClouds() {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                const clouds = [
+                    {x: 50, y: 80, size: 20},
+                    {x: 150, y: 60, size: 25},
+                    {x: 280, y: 90, size: 18},
+                    {x: 320, y: 40, size: 22}
+                ];
+                
+                clouds.forEach(cloud => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
+                    this.ctx.arc(cloud.x + cloud.size * 0.8, cloud.y, cloud.size * 1.2, 0, Math.PI * 2);
+                    this.ctx.arc(cloud.x - cloud.size * 0.8, cloud.y, cloud.size * 1.1, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+            }
+            
+            drawPipes() {
+                this.pipes.forEach(pipe => {
+                    // Top pipe
+                    this.ctx.fillStyle = '#4CAF50';
+                    this.ctx.fillRect(pipe.x, 0, pipe.width, pipe.topHeight);
+                    
+                    // Bottom pipe
+                    this.ctx.fillRect(pipe.x, pipe.bottomY, pipe.width, this.canvas.height - pipe.bottomY);
+                    
+                    // Pipe caps
+                    this.ctx.fillStyle = '#45a049';
+                    this.ctx.fillRect(pipe.x - 5, pipe.topHeight - 30, pipe.width + 10, 30);
+                    this.ctx.fillRect(pipe.x - 5, pipe.bottomY, pipe.width + 10, 30);
+                    
+                    // Pipe highlights
+                    this.ctx.fillStyle = '#66BB6A';
+                    this.ctx.fillRect(pipe.x + 5, 0, 5, pipe.topHeight - 30);
+                    this.ctx.fillRect(pipe.x + 5, pipe.bottomY + 30, 5, this.canvas.height - pipe.bottomY - 30);
+                });
+            }
+            
+            drawGround() {
+                // Ground
+                this.ctx.fillStyle = '#8B4513';
+                this.ctx.fillRect(0, this.groundY, this.canvas.width, 50);
+                
+                // Grass
+                this.ctx.fillStyle = '#228B22';
+                this.ctx.fillRect(0, this.groundY - 10, this.canvas.width, 10);
+                
+                // Grass details
+                this.ctx.fillStyle = '#32CD32';
+                for (let x = 0; x < this.canvas.width; x += 15) {
+                    this.ctx.fillRect(x, this.groundY - 12 - Math.random() * 8, 3, 12);
+                }
+            }
+            
+            drawBird() {
+                this.ctx.save();
+                this.ctx.translate(this.bird.x + this.bird.width / 2, this.bird.y + this.bird.height / 2);
+                this.ctx.rotate(this.bird.rotation * Math.PI / 180);
+                
+                // Bird body
+                this.ctx.fillStyle = '#FFD700';
+                this.ctx.beginPath();
+                this.ctx.ellipse(0, 0, this.bird.width / 2, this.bird.height / 2, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Bird wing
+                this.ctx.fillStyle = '#FFA500';
+                this.ctx.beginPath();
+                this.ctx.ellipse(-8, 0, 8, 6, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Bird eye
+                this.ctx.fillStyle = 'white';
+                this.ctx.beginPath();
+                this.ctx.arc(8, -5, 4, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.fillStyle = 'black';
+                this.ctx.beginPath();
+                this.ctx.arc(9, -5, 2, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Bird beak
+                this.ctx.fillStyle = '#FF4500';
+                this.ctx.beginPath();
+                this.ctx.moveTo(15, 0);
+                this.ctx.lineTo(22, 3);
+                this.ctx.lineTo(15, 6);
+                this.ctx.closePath();
+                this.ctx.fill();
+                
+                this.ctx.restore();
+            }
+            
+            gameLoop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
         }
-
-        btnClearHistory.addEventListener('click', () => {
-            detectionHistory = [];
-            renderHistory();
+        
+        // Initialize game when page loads
+        window.addEventListener('load', () => {
+            new FlappyBirdGame();
         });
-
-        // Initialize
-        updateStatus('Waiting for input', 'processing');
+        
+        // Handle window focus/blur for pause
+        window.addEventListener('blur', () => {
+            // Auto-pause when window loses focus
+        });
+        
+        // Prevent zoom on mobile
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     </script>
 </body>
 </html>
