@@ -357,6 +357,7 @@
         </div>
     </div>
 
+    <script src="https://js.puter.com/v2/"></script>
     <script>
         // Global variables
         let mediaRecorder = null;
@@ -371,6 +372,7 @@
         let recognition = null;
         let finalTranscript = '';
         let interimTranscript = '';
+        let currentTopic = '';
 
         // DOM Elements
         const btnGenerateTopic = document.getElementById('btn-generate-topic');
@@ -413,7 +415,8 @@
         // Generate random topic
         function generateRandomTopic() {
             const randomIndex = Math.floor(Math.random() * englishTopics.length);
-            return englishTopics[randomIndex];
+            currentTopic = englishTopics[randomIndex];
+            return currentTopic;
         }
 
         // Update status
@@ -660,13 +663,15 @@
                     // Get topic text for evaluation
                     const topicText = topicDisplay.textContent.replace('<p><strong>Topic:</strong> ', '').replace('</p>', '');
                     
-                    // Evaluate the transcription
-                    const evaluation = evaluateTranscription(transcription, topicText);
+                    updateStatus('AI is analyzing your speech...', 'processing');
+                    
+                    // Evaluate the transcription using Puter.js AI
+                    const evaluation = await evaluateWithAI(transcription, topicText);
                     
                     scoreDisplay.textContent = evaluation.score;
                     
                     // Generate feedback
-                    const feedback = generateFeedback(evaluation);
+                    const feedback = generateAIFeedback(evaluation);
                     feedbackContent.innerHTML = feedback.map(item => `<div class="feedback-item">${item}</div>`).join('');
                     
                     updateStatus('Assessment complete!', 'success');
@@ -686,42 +691,79 @@
             audioVisualizer.innerHTML = '';
         }
 
-        // Generate sample transcription based on topic
-        function generateSampleTranscription(topic) {
-            // This is a simulation - in a real app, you would use a speech-to-text API
-            const responses = {
-                "Describe your favorite childhood memory and why it's special to you.": 
-                    "My favorite childhood memory is when I went to the beach with my family for the first time. I was about 7 years old and I remember being amazed by the vast ocean. My father taught me how to build sandcastles and we had a sandcastle building competition. I also learned to swim that day, which was very exciting. This memory is special because it was a time when my whole family was together and happy.",
+        // AI-powered evaluation using Puter.js
+        async function evaluateWithAI(transcription, topic) {
+            const prompt = `You are an expert English language evaluator. Analyze the following English speech transcription and provide a detailed assessment.
+
+TOPIC: ${topic}
+
+TRANSCRIPTION: "${transcription}"
+
+Evaluate the speech based on these criteria:
+1. Fluency (0-100): Speaking pace, smoothness, natural flow, minimal pauses/hesitations
+2. Vocabulary (0-100): Word variety, appropriateness, use of advanced words
+3. Grammar (0-100): Sentence structure, verb conjugation, proper punctuation
+4. Relevance (0-100): Staying on topic, addressing the question directly, comprehensive coverage
+5. Pronunciation Clarity (0-100): Based on transcription quality indicators
+
+Provide your response in this exact JSON format:
+{
+  "score": <overall_score_0_to_100>,
+  "fluency": <fluency_score>,
+  "vocabulary": <vocabulary_score>,
+  "grammar": <grammar_score>,
+  "relevance": <relevance_score>,
+  "pronunciation": <pronunciation_score>,
+  "wordCount": <number_of_words>,
+  "strengths": [<list of 2-3 specific strengths>],
+  "weaknesses": [<list of 2-3 specific areas for improvement>],
+  "overallFeedback": "<brief 1-2 sentence summary>"
+}
+
+Be honest and accurate. A student who speaks briefly or has many errors should get a lower score (20-50). Average speakers should get 50-70. Excellent speakers with rich vocabulary and complex sentences should get 80-95.`;
+
+            try {
+                const response = await puter.ai.chat(prompt, { 
+                    model: "claude-sonnet-4-5"
+                });
                 
-                "What are the advantages and disadvantages of social media?":
-                    "Social media has many advantages. It helps people stay connected with friends and family, especially those who live far away. It also provides a platform for sharing information and news quickly. However, there are disadvantages too. Social media can be addictive and waste a lot of time. It can also lead to cyberbullying and privacy issues. People sometimes share too much personal information online, which can be dangerous.",
+                // Parse the JSON response
+                let evaluation;
+                try {
+                    // Try to extract JSON from the response
+                    const jsonMatch = response.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        evaluation = JSON.parse(jsonMatch[0]);
+                    } else {
+                        evaluation = JSON.parse(response);
+                    }
+                } catch (parseError) {
+                    console.error('Error parsing AI response:', parseError);
+                    console.log('Raw response:', response);
+                    // Fallback to local evaluation if AI response parsing fails
+                    return fallbackEvaluation(transcription, topic);
+                }
                 
-                "If you could travel anywhere in the world, where would you go and why?":
-                    "If I could travel anywhere, I would go to Japan. I'm very interested in Japanese culture, especially the traditional aspects like tea ceremonies and cherry blossom festivals. I also love Japanese food, particularly sushi and ramen. Additionally, Japan has beautiful nature with mountains and hot springs. I think visiting Japan would be a great opportunity to learn about a different culture and try new experiences."
-            };
-            
-            return responses[topic] || "This is a sample transcription of the student's speech. In a real application, this would be the actual text from the speech-to-text API. The student spoke clearly and covered the main points of the topic.";
+                return evaluation;
+            } catch (error) {
+                console.error('AI evaluation error:', error);
+                // Fallback to local evaluation if AI fails
+                return fallbackEvaluation(transcription, topic);
+            }
         }
 
-        // Evaluate transcription
-        function evaluateTranscription(text, topic) {
-            // This is a simplified evaluation - in a real app, you would use NLP APIs
+        // Fallback evaluation when AI is unavailable
+        function fallbackEvaluation(text, topic) {
             const wordCount = text.split(/\s+/).length;
             const sentenceCount = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
             
-            // Calculate various metrics
-            const fluency = Math.min(100, wordCount / 60 * 10); // Words per second * 10
-            const vocabulary = calculateVocabularyScore(text);
-            const grammar = calculateGrammarScore(text);
+            // Basic local scoring
+            const fluency = Math.min(100, Math.max(20, wordCount / 60 * 15));
+            const vocabulary = Math.min(100, Math.max(20, (new Set(text.toLowerCase().split(/\s+/)).size / wordCount) * 150));
+            const grammar = Math.min(100, Math.max(20, sentenceCount > 0 ? 60 : 30));
             const relevance = calculateRelevanceScore(text, topic);
             
-            // Overall score (weighted average)
-            const score = Math.round(
-                fluency * 0.3 + 
-                vocabulary * 0.25 + 
-                grammar * 0.25 + 
-                relevance * 0.2
-            );
+            const score = Math.round((fluency + vocabulary + grammar + relevance) / 4);
             
             return {
                 score: score,
@@ -729,123 +771,67 @@
                 vocabulary: Math.round(vocabulary),
                 grammar: Math.round(grammar),
                 relevance: Math.round(relevance),
+                pronunciation: Math.round((fluency + grammar) / 2),
                 wordCount: wordCount,
-                sentenceCount: sentenceCount
+                strengths: ["Attempted to answer the topic"],
+                weaknesses: ["Unable to get AI analysis"],
+                overallFeedback: "Basic evaluation performed. AI analysis was unavailable."
             };
         }
 
-        function calculateVocabularyScore(text) {
-            // Simple vocabulary diversity calculation
-            const words = text.toLowerCase().split(/\s+/);
-            const uniqueWords = new Set(words);
-            const diversity = (uniqueWords.size / words.length) * 100;
-            
-            // Check for advanced vocabulary
-            const advancedWords = ['particularly', 'especially', 'additionally', 'opportunity', 'experience', 'culture', 'traditional'];
-            let advancedCount = 0;
-            
-            words.forEach(word => {
-                if (advancedWords.includes(word)) {
-                    advancedCount++;
-                }
-            });
-            
-            const advancedScore = (advancedCount / words.length) * 200;
-            
-            return Math.min(100, diversity + advancedScore);
-        }
-
-        function calculateGrammarScore(text) {
-            // Simple grammar check - count sentences and check for basic structure
-            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-            
-            // Check if most sentences start with capital letters
-            let capitalStart = 0;
-            sentences.forEach(sentence => {
-                const firstChar = sentence.trim()[0];
-                if (firstChar && firstChar === firstChar.toUpperCase()) {
-                    capitalStart++;
-                }
-            });
-            
-            const capitalScore = (capitalStart / sentences.length) * 50;
-            
-            // Check for basic sentence structure (subject-verb patterns)
-            const structureScore = 50; // Placeholder for more advanced grammar checking
-            
-            return Math.min(100, capitalScore + structureScore);
-        }
-
+        // Calculate relevance score (helper function for fallback)
         function calculateRelevanceScore(text, topic) {
             // Check if key words from the topic appear in the response
-            const topicWords = topic.toLowerCase().split(/\s+/);
+            const topicWords = topic.toLowerCase().split(/\s+/).filter(w => w.length > 3);
             const responseWords = text.toLowerCase().split(/\s+/);
             
             let relevanceCount = 0;
             topicWords.forEach(word => {
-                if (word.length > 3 && responseWords.includes(word)) {
+                if (responseWords.includes(word)) {
                     relevanceCount++;
                 }
             });
             
-            const relevanceRatio = relevanceCount / topicWords.length;
-            return Math.min(100, relevanceRatio * 150); // Scale up to give good scores for reasonable relevance
+            const relevanceRatio = topicWords.length > 0 ? relevanceCount / topicWords.length : 0.5;
+            return Math.min(100, relevanceRatio * 150);
         }
 
-        // Generate feedback
-        function generateFeedback(evaluation) {
+        // Generate AI-powered feedback
+        function generateAIFeedback(evaluation) {
             const feedback = [];
             
-            // Overall feedback
+            // Overall feedback based on score
             if (evaluation.score >= 80) {
-                feedback.push("Excellent job! You demonstrated strong English speaking skills.");
+                feedback.push(`🌟 Excellent job! ${evaluation.overallFeedback || "You demonstrated strong English speaking skills."}`);
             } else if (evaluation.score >= 60) {
-                feedback.push("Good effort! You have solid English speaking skills with room for improvement.");
+                feedback.push(`👍 Good effort! ${evaluation.overallFeedback || "You have solid English speaking skills with room for improvement."}`);
             } else if (evaluation.score >= 40) {
-                feedback.push("Fair performance. You have basic English speaking skills that need development.");
+                feedback.push(`📈 Fair performance. ${evaluation.overallFeedback || "You have basic English speaking skills that need development."}`);
             } else {
-                feedback.push("Needs improvement. Focus on building your English speaking foundation.");
+                feedback.push(`📝 Needs improvement. ${evaluation.overallFeedback || "Focus on building your English speaking foundation."}`);
             }
             
-            // Fluency feedback
-            if (evaluation.fluency >= 80) {
-                feedback.push(`Great fluency! You spoke at a good pace (${evaluation.wordCount} words).`);
-            } else if (evaluation.fluency >= 60) {
-                feedback.push(`Good fluency, but try to speak more smoothly. You used ${evaluation.wordCount} words.`);
-            } else {
-                feedback.push(`Work on your fluency. Practice speaking more smoothly and confidently.`);
+            // Add score breakdown
+            feedback.push(`📊 Score Breakdown - Fluency: ${evaluation.fluency}/100 | Vocabulary: ${evaluation.vocabulary}/100 | Grammar: ${evaluation.grammar}/100 | Relevance: ${evaluation.relevance}/100`);
+            
+            // Strengths
+            if (evaluation.strengths && evaluation.strengths.length > 0) {
+                feedback.push(`💪 Strengths: ${evaluation.strengths.join('; ')}`);
             }
             
-            // Vocabulary feedback
-            if (evaluation.vocabulary >= 80) {
-                feedback.push("Excellent vocabulary! You used a wide range of words effectively.");
-            } else if (evaluation.vocabulary >= 60) {
-                feedback.push("Good vocabulary usage. Try to incorporate more advanced words.");
-            } else {
-                feedback.push("Expand your vocabulary. Learn new words and practice using them in sentences.");
+            // Areas for improvement
+            if (evaluation.weaknesses && evaluation.weaknesses.length > 0) {
+                feedback.push(`🎯 Areas to improve: ${evaluation.weaknesses.join('; ')}`);
             }
             
-            // Grammar feedback
-            if (evaluation.grammar >= 80) {
-                feedback.push("Excellent grammar! Your sentences are well-structured.");
-            } else if (evaluation.grammar >= 60) {
-                feedback.push("Good grammar overall. Pay attention to sentence structure and punctuation.");
-            } else {
-                feedback.push("Work on your grammar. Focus on proper sentence structure and verb conjugation.");
-            }
-            
-            // Relevance feedback
-            if (evaluation.relevance >= 80) {
-                feedback.push("Great job staying on topic! Your response was very relevant.");
-            } else if (evaluation.relevance >= 60) {
-                feedback.push("Good topic coverage. Try to address all aspects of the question.");
-            } else {
-                feedback.push("Focus on staying relevant to the topic. Make sure to answer the question directly.");
-            }
-            
-            // Specific suggestions
-            if (evaluation.score < 70) {
-                feedback.push("Practice speaking English daily to improve your confidence and fluency.");
+            // Word count info
+            if (evaluation.wordCount) {
+                const wordCountFeedback = evaluation.wordCount < 30 
+                    ? `You spoke ${evaluation.wordCount} words. Try to speak more to fully develop your ideas.`
+                    : evaluation.wordCount > 100
+                    ? `You spoke ${evaluation.wordCount} words. Good length for a 1-minute response!`
+                    : `You spoke ${evaluation.wordCount} words, which is a reasonable length.`;
+                feedback.push(`🗣️ ${wordCountFeedback}`);
             }
             
             return feedback;
