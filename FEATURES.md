@@ -23,29 +23,40 @@
 - Word count and sentence analysis
 - Error handling for no-speech detection
 
-### 4. **AI-Powered Evaluation Engine** (Powered by Puter.js)
-- **Dynamic, context-aware scoring** - no more fixed scores!
+### 4. **AI-Powered Evaluation Engine** (Powered by Puter.js) - ENHANCED ⭐
+- **Critical, accurate scoring** using IELTS/TOEFL standards
 - Uses Claude Sonnet 4.5 via free Puter.js API
 - Multi-dimensional assessment:
-  - **Fluency** (0-100): Speaking pace, smoothness, natural flow
-  - **Vocabulary** (0-100): Word variety, appropriateness, advanced words
-  - **Grammar** (0-100): Sentence structure, verb conjugation
-  - **Relevance** (0-100): Staying on topic, addressing the question
-  - **Pronunciation** (0-100): Based on transcription quality
-- **Personalized feedback** with specific strengths and weaknesses
-- **Score breakdown** displayed for each criterion
-- **Fallback evaluation** if AI service is unavailable
+  - **Fluency** (0-100): Speaking pace, smoothness, natural flow, filler word detection
+  - **Vocabulary** (0-100): Word variety, appropriateness, advanced words, repetition analysis
+  - **Grammar** (0-100): Sentence structure, verb conjugation, **specific error detection**
+  - **Relevance** (0-100): Staying on topic, addressing the question comprehensively
+  - **Coherence** (0-100): Logical organization, idea connection, comprehensibility
+- **Grammar Error Detection**: AI identifies specific errors with examples from your speech
+- **Filler Word Counting**: Tracks usage of "okay", "um", "uh", "like", etc.
+- **Statistical Analysis**: Word count, sentence count, average words per sentence
+- **Personalized feedback** with specific strengths and weaknesses from actual content
+- **Score breakdown** displayed for each criterion with context
+- **Enhanced fallback evaluation** with local analytics if AI service is unavailable
 
-### 5. Scoring & Feedback
-- Dynamic overall score (0-100) - varies based on actual speech quality
-- Honest assessment: short/poor responses = lower scores (20-50)
-- Good responses = medium scores (50-70)
-- Excellent responses = high scores (80-95)
-- Detailed performance breakdown
-- Specific strengths identified by AI
-- Targeted improvement suggestions
-- Visual score display
-- Comprehensive feedback section
+### 5. Scoring & Feedback - ENHANCED ⭐
+- **Strict, varied scoring** (0-100) - truly reflects actual speech quality
+- Honest IELTS/TOEFL-level assessment:
+  - Poor responses (many errors, short, unclear) = 20-40
+  - Basic responses (multiple issues, limited vocab) = 40-59
+  - Good responses (clear, minor errors) = 60-79
+  - Excellent responses (rich vocab, minimal errors) = 80-95
+- **Detailed performance breakdown** with context:
+  - Individual scores for each criterion
+  - Filler word count displayed
+  - Grammar error count shown
+- **Specific grammar errors listed** with examples from your actual speech
+- **Specific strengths identified** by AI from your content
+- **Targeted improvement suggestions** based on your weaknesses
+- **Response length analysis** with quality assessment
+- **Average words per sentence** calculation and feedback
+- **Personalized recommendations** for improvement
+- Visual score display with comprehensive feedback section
 
 ## AI Integration Features
 
@@ -56,12 +67,15 @@
 - Automatic fallback to local evaluation if AI is unavailable
 - JSON-formatted responses for structured data
 
-### Dynamic Evaluation Benefits
-- **Context-aware scoring** - AI understands the content
-- **Variable scores** - different quality speeches get different scores
-- **Specific feedback** - identifies actual strengths and weaknesses
+### Dynamic Evaluation Benefits - ENHANCED ⭐
+- **Critical, strict scoring** - AI uses IELTS/TOEFL standards for honest assessment
+- **Highly variable scores** - each response gets unique scores based on actual quality
+- **Error-specific feedback** - identifies exact grammar errors with examples
+- **Content analysis** - analyzes actual transcription for filler words, repetition, clarity
 - **Topic relevance** - evaluates how well you addressed the question
-- **Vocabulary analysis** - recognizes word variety and sophistication
+- **Vocabulary analysis** - recognizes word variety, sophistication, and repetition issues
+- **Statistical metrics** - word count, sentence count, average sentence length
+- **No generic responses** - every evaluation is unique to your actual speech
 
 ## User Experience Features
 
@@ -126,12 +140,25 @@
 - Puter.js secure API communication
 - No personal data collection
 
+## Recent Enhancements (Latest Update) ✅
+
+- ✅ **Grammar error detection** with specific examples
+- ✅ **Filler word counting** (okay, um, uh, like, etc.)
+- ✅ **Statistical analysis** (word count, sentence count, avg words per sentence)
+- ✅ **Critical scoring system** using IELTS/TOEFL standards
+- ✅ **Enhanced AI prompts** for more accurate, varied evaluations
+- ✅ **Detailed feedback display** with grammar errors listed
+- ✅ **Improved fallback evaluation** with local analytics
+- ✅ **Coherence scoring** added as fifth evaluation criterion
+
 ## Future Enhancements
 
 - Support for multiple languages
-- Speech rate analysis
-- Pause pattern detection
-- Filler word detection (um, uh, like)
-- Progress tracking over time
-- Detailed pronunciation feedback
+- Speech rate analysis (words per minute)
+- Pause pattern detection and analysis
+- Advanced pronunciation feedback using phonetic analysis
+- Progress tracking over time with history
+- Comparison with previous attempts
 - Export results to PDF
+- Voice recording playback feature
+- Advanced vocabulary suggestions

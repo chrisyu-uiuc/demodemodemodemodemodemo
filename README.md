@@ -21,14 +21,16 @@ A modern, browser-based English speaking assessment system that generates topics
 - Continuous recognition with interim results
 - Word count and sentence analysis
 
-### **AI-Powered Evaluation System** (NEW)
-- **Dynamic, intelligent scoring** using Puter.js Claude AI
-- Multi-dimensional scoring (fluency, vocabulary, grammar, relevance, pronunciation)
-- **Personalized feedback** based on actual speech content
-- Context-aware evaluation that varies based on speech quality
+### **AI-Powered Evaluation System** (ENHANCED)
+- **Critical, accurate scoring** using Puter.js Claude AI
+- Multi-dimensional scoring (fluency, vocabulary, grammar, relevance, coherence)
+- **Personalized feedback** based on actual speech content and errors
+- Context-aware evaluation with strict grading standards
+- **Grammar error detection** - specific issues identified with examples
+- **Filler word counting** - tracks "okay", "um", "uh" usage
 - Detailed strengths and weaknesses analysis
-- Overall score calculation (0-100)
-- **No more fixed scores** - each evaluation is unique!
+- Overall score calculation (0-100) that truly varies based on quality
+- **No more generic scores** - each evaluation reflects actual performance!
 
 ### User Interface
 - Modern, responsive dark theme
@@ -56,13 +58,16 @@ A modern, browser-based English speaking assessment system that generates topics
 
 4. **Get Your AI Evaluation**
    - Your speech is transcribed live as you speak
-   - After recording, the **AI analyzes your actual transcribed response**
-   - View your dynamic overall score (0-100) - varies based on quality!
+   - After recording, the **AI critically analyzes your actual transcribed response**
+   - View your accurate overall score (0-100) - truly reflects performance quality!
    - Read detailed feedback including:
-     - Score breakdown for each criterion
+     - Score breakdown for each criterion (Fluency, Vocabulary, Grammar, Relevance, Coherence)
+     - **Specific grammar errors found** with examples from your speech
+     - **Filler word count** (okay, um, uh, etc.)
+     - **Word and sentence statistics** with quality assessment
      - Specific strengths identified by AI
-     - Areas for improvement
-     - Personalized suggestions
+     - Areas for improvement with actionable suggestions
+     - Personalized recommendations
 
 ## Assessment Criteria
 
@@ -88,8 +93,10 @@ The AI evaluates your English speaking skills based on:
    - Addressing the question directly
    - Comprehensive coverage of the subject
 
-5. **Pronunciation Clarity (0-100)**
-   - Based on transcription quality indicators
+5. **Coherence (0-100)**
+   - Logical organization of ideas
+   - Clear connection between thoughts
+   - Overall comprehensibility
 
 ## Technical Details
 
@@ -106,11 +113,17 @@ The AI evaluates your English speaking skills based on:
 1. Generate random English speaking topic
 2. Record 60-second audio response
 3. Transcribe speech to text in real-time using Web Speech API
-4. Send transcription to Puter.js AI (Claude Sonnet 4.5)
-5. AI analyzes content for fluency, vocabulary, grammar, and relevance
-6. Receive dynamic JSON response with detailed evaluation
-7. Display personalized score and feedback
-8. **Fallback to local evaluation** if AI service is unavailable
+4. Calculate word count, sentence count, and filler word frequency
+5. Send transcription with statistics to Puter.js AI (Claude Sonnet 4.5)
+6. AI critically analyzes content for:
+   - Fluency (detects filler words, incomplete sentences, flow issues)
+   - Vocabulary (checks diversity, repetition, appropriateness)
+   - Grammar (identifies specific errors with examples)
+   - Relevance (evaluates topic adherence)
+   - Coherence (assesses logical organization)
+7. Receive detailed JSON response with scores, errors, and feedback
+8. Display comprehensive evaluation with specific issues highlighted
+9. **Fallback to enhanced local evaluation** if AI service is unavailable
 
 ### Browser Requirements
 
@@ -131,12 +144,14 @@ The AI evaluates your English speaking skills based on:
 
 ## Scoring Guide
 
-The AI provides honest, context-aware scoring:
+The AI provides strict, honest, and context-aware scoring:
 
-- **80-95**: Excellent speakers with rich vocabulary and complex sentences
-- **60-79**: Average speakers with good understanding
-- **40-59**: Basic speakers with room for development
-- **Below 40**: Needs significant improvement, short responses or many errors
+- **80-95**: Excellent speakers with rich vocabulary, complex sentences, minimal errors, and excellent coherence
+- **60-79**: Good speakers with solid vocabulary and grammar, minor errors, clear communication
+- **40-59**: Basic speakers with room for development, multiple grammar errors, limited vocabulary, or excessive filler words
+- **Below 40**: Needs significant improvement - very short responses, many errors, poor grammar, or incomprehensible speech
+
+**Note:** The AI uses IELTS/TOEFL-level standards. Most average speakers will score in the 40-65 range. Scores accurately reflect actual performance quality and vary significantly between different responses.
 
 ## Limitations
 
