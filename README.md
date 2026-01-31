@@ -1,96 +1,122 @@
-# License Plate Detection & Recognition System
+# English Speaking Assessment System
 
-A modern, browser-based license plate detection and recognition system built with JavaScript, OpenCV.js, and Tesseract.js.
+A modern, browser-based English speaking assessment system that generates topics, records student responses, transcribes speech, and evaluates performance using AI-powered scoring.
 
 ## Features
 
-- **Multiple Input Methods**
-  - Drag & drop image upload
-  - Click to select image files
-  - Live camera capture
+- **AI Topic Generation**
+  - Random English speaking topics for 1-minute responses
+  - Diverse range of conversation questions
+  - Instant topic generation with one click
 
-- **Image Preprocessing**
-  - Grayscale conversion
-  - Gaussian blur for noise reduction
-  - Contrast enhancement
-  - Adaptive thresholding
-  - Morphological operations (opening/closing)
-  - Contour detection for plate region identification
+- **Speech Recording**
+  - 60-second timed recording
+  - Real-time audio visualization
+  - Browser-based microphone access
+  - Countdown timer with visual feedback
 
-- **OCR Recognition**
-  - Powered by Tesseract.js
-  - Multi-language support (English, German, French, Spanish)
-  - Confidence score calculation
+- **Speech Transcription**
+  - Automatic speech-to-text conversion
+  - Real-time transcription display
+  - Word count and sentence analysis
+
+- **AI Evaluation System**
+  - Multi-dimensional scoring (fluency, vocabulary, grammar, relevance)
+  - Overall score calculation (0-100)
+  - Detailed performance feedback
+  - Personalized improvement suggestions
 
 - **User Interface**
   - Modern, responsive dark theme
-  - Real-time processing indicators
-  - Results display with confidence visualization
-  - Detection history with timestamps
-  - Adjustable preprocessing parameters
+  - Step-by-step assessment workflow
+  - Real-time status updates
+  - Visual feedback and progress indicators
+  - Mobile-friendly design
 
 ## Usage
 
 1. **Open the Application**
    - Simply open `index.html` in a modern web browser (Chrome, Firefox, Edge, Safari)
 
-2. **Select an Input Method**
-   - **Upload**: Drag & drop an image or click to select a file
-   - **Camera**: Click "Open Camera" to access your device's camera (requires HTTPS or localhost)
+2. **Generate a Topic**
+   - Click "Generate Topic" to get a random English speaking question
+   - Topics cover various subjects and difficulty levels
 
-3. **Process the Image**
-   - Click "Detect Plate" to analyze the image
-   - The system will:
-     - Preprocess the image to enhance plate visibility
-     - Extract potential license plate regions
-     - Perform OCR to read the text
-     - Display results with confidence scores
+3. **Record Your Response**
+   - Click "Start Recording" to begin your 60-second response
+   - Speak clearly about the given topic
+   - The timer will count down from 60 seconds
+   - Audio visualization shows your speaking volume
 
-4. **Adjust Settings (Optional)**
-   - **OCR Language**: Select the appropriate language for better recognition
-   - **Contrast Enhancement**: Adjust contrast (0-100) to improve plate visibility
-   - **Threshold Value**: Modify thresholding (0-255) for different lighting conditions
+4. **Get Your Results**
+   - After recording, your speech will be transcribed
+   - The AI evaluates your response across multiple dimensions
+   - View your overall score (0-100)
+   - Read detailed feedback on your performance
+   - Receive personalized suggestions for improvement
+
+## Assessment Criteria
+
+The system evaluates your English speaking skills based on:
+
+1. **Fluency (30%)**
+   - Speaking pace and smoothness
+   - Natural flow and rhythm
+   - Minimal pauses and hesitations
+
+2. **Vocabulary (25%)**
+   - Range and diversity of words used
+   - Appropriate word choice
+   - Use of advanced vocabulary
+
+3. **Grammar (25%)**
+   - Correct sentence structure
+   - Proper verb conjugation
+   - Appropriate punctuation
+
+4. **Relevance (20%)**
+   - Staying on topic
+   - Addressing the question directly
+   - Comprehensive coverage of the subject
 
 ## Technical Details
 
 ### Dependencies
 
-- **OpenCV.js** (4.8.0): Image processing and computer vision
-- **Tesseract.js** (v5): Optical character recognition
-- **Modern Web APIs**: Camera access, File API, Canvas API
+- **Web Audio API**: Audio recording and visualization
+- **MediaRecorder API**: Browser-based audio recording
+- **Modern Web APIs**: Microphone access, File API
 
-### Image Processing Pipeline
+### Assessment Pipeline
 
-1. Load image into canvas
-2. Convert to grayscale
-3. Apply Gaussian blur
-4. Enhance contrast
-5. Apply adaptive thresholding
-6. Perform morphological operations
-7. Detect contours
-8. Extract regions of interest
-9. Perform OCR on detected regions
+1. Generate random English speaking topic
+2. Record 60-second audio response
+3. Transcribe speech to text
+4. Analyze transcription for evaluation metrics
+5. Calculate scores across multiple dimensions
+6. Generate detailed feedback and suggestions
 
 ### Browser Requirements
 
 - Modern browser with JavaScript enabled
-- Camera access requires HTTPS or localhost
-- WebAssembly support (for OpenCV.js)
+- Microphone access requires HTTPS or localhost
+- Web Audio API support
 - Approximately 50-100 MB available memory for processing
 
 ## Performance Tips
 
-- For best results, use images with good lighting
-- License plates should be clearly visible and not heavily distorted
-- The system works best with standard license plate formats
-- Processing time varies by image size and complexity (typically 1-5 seconds)
+- Speak clearly and at a natural pace
+- Stay focused on the given topic
+- Use a variety of vocabulary
+- Structure your response with clear sentences
+- Practice regularly to improve your skills
 
 ## Limitations
 
-- Accuracy depends on image quality and lighting conditions
-- May struggle with heavily damaged or obscured plates
+- Accuracy depends on microphone quality
+- Requires microphone permissions
 - Performance can vary based on device capabilities
-- Requires internet connection for loading CDN resources
+- Internet connection required for full functionality
 
 ## License
 
