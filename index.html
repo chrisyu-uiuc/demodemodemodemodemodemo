@@ -594,8 +594,8 @@
                 clearInterval(timerInterval);
             }
             
-            // Close audio context
-            if (audioContext) {
+            // Close audio context (only if not already closed)
+            if (audioContext && audioContext.state !== 'closed') {
                 audioContext.close();
             }
         }
@@ -772,15 +772,18 @@ Remember: BE STRICT. Most responses should score 40-65. Only perfect or near-per
                     model: "claude-sonnet-4-5"
                 });
                 
-                // Parse the JSON response
+                // Parse the JSON response - handle both string and object responses
                 let evaluation;
                 try {
+                    // Convert response to string if it's an object
+                    const responseText = typeof response === 'string' ? response : JSON.stringify(response);
+                    
                     // Try to extract JSON from the response
-                    const jsonMatch = response.match(/\{[\s\S]*\}/);
+                    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
                     if (jsonMatch) {
                         evaluation = JSON.parse(jsonMatch[0]);
                     } else {
-                        evaluation = JSON.parse(response);
+                        evaluation = JSON.parse(responseText);
                     }
                     
                     // Ensure all required fields are present
